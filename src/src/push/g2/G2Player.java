@@ -1,5 +1,6 @@
 package push.g2;
 
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +42,21 @@ public class G2Player extends Player{
 		//team up with the player opposite you
 		
 		return new Move(3, 3, myCorner.getOpposite());
+	}
+	
+	public Move depthSearch(Point start)
+	{
+		return null;
+	}
+	
+	public boolean isValid(Move m, Direction d)
+	{
+		return false;
+	}
+	
+	public Point getStartPoint()
+	{
+		return null;
 	}
 	
 	public Move generateRandomMove(int depth)
