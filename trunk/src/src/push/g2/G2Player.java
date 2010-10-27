@@ -46,7 +46,9 @@ public class G2Player extends Player{
 	{
 		//return generateRandomMove(0);
 		stack.push(getStartPoint());
-		return depthSearch();
+		Move m = depthSearch();
+		stack.clear();
+		return m;
 	}
 	
 	
@@ -77,7 +79,14 @@ public class G2Player extends Player{
 	
 	public boolean isValid(Move m)
 	{
-		return board[m.getX()][m.getY()]>0 && 
+		if(m.getY() > 15 || m.getX()>7)
+			return false;
+		
+		System.err.println("y move: " + m.getY());
+		System.err.println("x move: " + m.getX());
+		System.err.println("dir: " + m.getDirection().name());
+		
+		return board[m.getY()][m.getX()]>0 && 
 			GameEngine.isValidDirectionForCellAndHome(m.getDirection(), myCorner);
 	}
 	
