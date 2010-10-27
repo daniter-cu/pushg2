@@ -15,6 +15,8 @@ public class G2Player extends Player{
 	Direction myCorner;
 	int id;
 	
+	int opId;
+	
 	public void updateBoardState(int[][] board)
 	{
 		this.board= board;
@@ -29,11 +31,16 @@ public class G2Player extends Player{
 	{
 		myCorner=playerPositions.get(id);
 		this.id=id;
+		//this.opId=
 	}
 
 	public Move makeMove(List<MoveResult> previousMoves)
 	{
-		return generateRandomMove(0);
+		//return generateRandomMove(0);
+		
+		//team up with the player opposite you
+		
+		return new Move(3, 3, myCorner.getOpposite());
 	}
 	
 	public Move generateRandomMove(int depth)
