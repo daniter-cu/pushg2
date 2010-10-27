@@ -103,7 +103,7 @@ public class GameConfig {
 				for(File c : f.listFiles())
 				{
 					if(c.getName().endsWith(".class") ){
-						String className = c.toString().replaceAll("/", ".").replace("bin.","");
+					    String className = c.toString().replace(System.getProperty("file.separator"), ".").replace("bin.","");
 						className = className.substring(0, className.length() - 6);
 						 Class theClass = null;
 				          try{
