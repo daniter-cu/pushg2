@@ -14,6 +14,7 @@ public class G2Player extends Player{
 	
 	int[][] board;
 	Direction myCorner;
+	Direction myOp;
 	int id;
 	
 	int opId;
@@ -31,17 +32,14 @@ public class G2Player extends Player{
 	public void startNewGame(int id, int m, ArrayList<Direction> playerPositions) 
 	{
 		myCorner=playerPositions.get(id);
+		myOp=myCorner.getOpposite();
 		this.id=id;
-		//this.opId=
 	}
 
 	public Move makeMove(List<MoveResult> previousMoves)
 	{
 		//return generateRandomMove(0);
 		
-		//team up with the player opposite you
-		
-		//return new Move(3, 3, myCorner.getOpposite());
 		return depthSearch(getStartPoint());
 	}
 	
