@@ -2,8 +2,10 @@ package push.g2;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
+import java.util.Queue;
 
 import push.sim.GameConfig;
 import push.sim.GameEngine;
@@ -17,7 +19,7 @@ public class G2Player extends Player{
 	Direction myCorner;
 	Direction myOp;
 	int id;
-	private Stack<Point> stack;
+	private LinkedList<Point> queue;
 	int opId;
 	ArrayList<Direction> moves = new ArrayList<Direction>();
 	
@@ -36,7 +38,8 @@ public class G2Player extends Player{
 		myCorner=playerPositions.get(id);
 		myOp=myCorner.getOpposite();
 		this.id=id;
-		stack = new Stack<Point>();
+		queue = new LinkedList<Point>();
+		
 		moves.add(myOp.getLeft());
 		moves.add(myOp.getRight());
 		moves.add(myOp.getOpposite());
@@ -45,9 +48,9 @@ public class G2Player extends Player{
 	public Move makeMove(List<MoveResult> previousMoves)
 	{
 		//return generateRandomMove(0);
-		stack.push(getStartPoint());
+		queue.addLast(getStartPoint());
 		Move m = depthSearch();
-		stack.clear();
+		queue.clear();
 		return m;
 	}
 	
@@ -55,9 +58,10 @@ public class G2Player extends Player{
 	
 	public Move depthSearch()
 	{
-		if(stack.isEmpty())
+		if(queue.isEmpty())
 			return(new Move(0,0, myCorner.getOpposite()));
-		Point start = stack.pop();
+		
+		Point start = queue.removeFirst();
 
 		Move m;
 		for(int i = 0; i< 3; i++)
@@ -71,7 +75,7 @@ public class G2Player extends Player{
 		
 		for(int i = 0; i < 3; i++)
 		{
-			stack.push(new Point(start.x+moves.get(i).getDx(), start.y+moves.get(i).getDy()));
+			queue.addLast(new Point(start.x+moves.get(i).getDx(), start.y+moves.get(i).getDy()));
 		}
 		
 		return depthSearch();
@@ -79,15 +83,19 @@ public class G2Player extends Player{
 	
 	public boolean isValid(Move m)
 	{
-		if(m.getY() > 15 || m.getX()>7)
+		if(m.getY()<0 || m.getY()>8 || m.getX()<0 || m.getX()>16)
 			return false;
+
+		System.err.println("board top: " + board.length);
+		System.err.println("board left: " + board[0].length);
 		
-		System.err.println("y move: " + m.getY());
-		System.err.println("x move: " + m.getX());
+		System.err.println("left move: " + m.getY());
+		System.err.println("top  move: " + m.getX());
 		System.err.println("dir: " + m.getDirection().name());
 		
 		return board[m.getY()][m.getX()]>0 && 
-			GameEngine.isValidDirectionForCellAndHome(m.getDirection(), myCorner);
+			GameEngine.isValidDirectionForCellAndHome(m.getDirection(), myCorner) &&
+			GameEngine.isInBounds(m.getX()+m.getDirection().getDx(), m.getY()+m.getDirection().getDy());
 	}
 	
 	public Point getStartPoint()
