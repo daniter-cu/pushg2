@@ -48,14 +48,15 @@ public class G2Player extends Player{
 		return null;
 	}
 	
-	public boolean isValid(Move m, Direction d)
+	public boolean isValid(Move m)
 	{
-		return false;
+		return board[m.getX()][m.getY()]>0 && 
+			GameEngine.isValidDirectionForCellAndHome(m.getDirection(), myCorner);
 	}
 	
 	public Point getStartPoint()
 	{
-		return null;
+		return myOp.getHome();
 	}
 	
 	public Move generateRandomMove(int depth)
