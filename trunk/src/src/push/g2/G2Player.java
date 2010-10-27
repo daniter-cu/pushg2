@@ -41,7 +41,8 @@ public class G2Player extends Player{
 		
 		//team up with the player opposite you
 		
-		return new Move(3, 3, myCorner.getOpposite());
+		//return new Move(3, 3, myCorner.getOpposite());
+		return depthSearch(getStartPoint());
 	}
 	
 	public Move depthSearch(Point start)
