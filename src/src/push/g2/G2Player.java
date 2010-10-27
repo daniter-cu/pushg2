@@ -3,6 +3,7 @@ package push.g2;
 import java.awt.Point;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
 
 import push.sim.GameConfig;
 import push.sim.GameEngine;
@@ -16,8 +17,9 @@ public class G2Player extends Player{
 	Direction myCorner;
 	Direction myOp;
 	int id;
-	
+	private Stack<Point> stack;
 	int opId;
+	ArrayList<Direction> moves = new ArrayList<Direction>();
 	
 	public void updateBoardState(int[][] board)
 	{
@@ -34,18 +36,43 @@ public class G2Player extends Player{
 		myCorner=playerPositions.get(id);
 		myOp=myCorner.getOpposite();
 		this.id=id;
+		stack = new Stack<Point>();
+		moves.add(myOp.getLeft());
+		moves.add(myOp.getRight());
+		moves.add(myOp.getOpposite());
 	}
 
 	public Move makeMove(List<MoveResult> previousMoves)
 	{
 		//return generateRandomMove(0);
-		
-		return depthSearch(getStartPoint());
+		stack.push(getStartPoint());
+		return depthSearch();
 	}
 	
-	public Move depthSearch(Point start)
+	
+	
+	public Move depthSearch()
 	{
-		return null;
+		if(stack.isEmpty())
+			return(new Move(0,0, myCorner.getOpposite()));
+		Point start = stack.pop();
+
+		Move m;
+		for(int i = 0; i< 3; i++)
+		{
+			m = new Move(start.x, start.y, moves.get(i));
+			if(isValid(m))
+			{
+				return m;
+			}
+		}
+		
+		for(int i = 0; i < 3; i++)
+		{
+			stack.push(new Point(start.x+moves.get(i).getDx(), start.y+moves.get(i).getDy()));
+		}
+		
+		return depthSearch();
 	}
 	
 	public boolean isValid(Move m)
