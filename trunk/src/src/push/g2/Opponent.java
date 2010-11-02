@@ -1,6 +1,7 @@
 package push.g2;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.awt.Point;
 
 import push.sim.GameConfig;
 import push.sim.GameEngine;
@@ -47,4 +48,15 @@ public class Opponent
 	{
 		
 	}
+	
+	//calculates the worth of any move made in the previous round for G2Player
+	public double worthOfAMove(Move m)
+    {
+        double worth=0.0;
+        double oldDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getX(),m.getY()));
+        double newDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getNewX(),m.getNewY()));
+        double coins= board[m.getNewY()][m.getNewX()];
+        worth = (coins)*((oldDistance-newDistance)-1.0);
+        return worth;
+    }
 }
