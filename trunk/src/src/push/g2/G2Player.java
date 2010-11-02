@@ -1,6 +1,8 @@
 package push.g2;
 
 import java.awt.Point;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -90,15 +92,21 @@ public class G2Player extends Player{
 			}
 			
 			// it's not the first move
-			for(Opponent o : opponents)
+			for(MoveResult mr : previousMoves)
 			{
-				Move m = previousMoves.get(o.oppId).getMove();
-				o.addToHistory(Util.worthOfAMove(board, myCorner, m));
+				for(int x=0; x<opponents.size(); x++)
+				{
+					if(mr.getPlayerId() == opponents.get(x).oppId)
+					{
+						Move m = mr.getMove();
+						opponents.get(x).addToHistory(Util.worthOfAMove(board, myCorner, m));
+						break;
+					}
+				}
 			}
 			
 			Collections.sort(opponents);
 			Collections.reverse(opponents);
-			log.error("sorting finished");
 			
 			//return the best move
 			for(Opponent o : opponents)
@@ -113,9 +121,14 @@ public class G2Player extends Player{
 		}
 		catch(Exception e)
 		{
-			log.error(e);
+			java.io.StringWriter sw = new StringWriter();
+			PrintWriter pw = new PrintWriter(sw, true);
+			e.printStackTrace(pw);
+			pw.flush();
+			sw.flush();
+			log.error(sw.toString());
 		}
-		
+		log.error("Printing shitty move");
 		//no move is possible (or it's the first turn)
 		return new Move(0,0, myCorner.getOpposite());
 	}

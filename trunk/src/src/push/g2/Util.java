@@ -2,12 +2,19 @@ package push.g2;
 
 import java.awt.Point;
 import java.util.ArrayList;
+
+import org.apache.log4j.Logger;
+
 import push.sim.GameEngine;
 import push.sim.Move;
 import push.sim.Player.Direction;
 
+import org.apache.log4j.Logger;
+
 public class Util {
 
+	public static Logger log = Logger.getLogger("Util");
+	
 	public static Move getBestMove(int[][] board, Opponent op, Direction home)
 	{
 		//find all valid moves for this player
@@ -20,9 +27,9 @@ public class Util {
 		//iterate through board
 		for(int i = 0; i < board.length; i++)
 		{
-			for(int j = 0; j < board[0].length; i++)
+			for(int j = 0; j < board[0].length; j++)
 			{
-				if(board[i][j] == 0)
+				if(board[i][j] < 1)
 					continue;
 				//check if move is valid
 				for(Direction d : dirs)
@@ -32,6 +39,10 @@ public class Util {
 					{
 						moves.add(new Moves(m,worthOfAMove(board,op.oppCorner,m)));
 						//if it is, get value, add to list	
+					}
+					else
+					{
+						log.error(m.getX() + "," + m.getY() + ": " + m.getDirection());
 					}
 				}	
 			}
@@ -47,15 +58,20 @@ public class Util {
 		double minDist = Integer.MAX_VALUE;
 		for(Moves m : moves)
 		{
-			if(m.getVal()*gold < 0)
-				continue;
+			//if(m.getVal()*gold < 0)
+			//	continue;
 			if(Math.abs(m.getVal() - gold) < minDist)
 			{
 				minDist = Math.abs(m.getVal() - gold);
 				best = m;
 			}
 		}
-		return best.getM();
+		
+		
+		if(best != null)
+			return best.getM();
+		
+		return null;
 	}
 
 	//calculates the worth of any move made in the previous round for G2Player
