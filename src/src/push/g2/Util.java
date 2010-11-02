@@ -2,7 +2,6 @@ package push.g2;
 
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.Collections;
 import push.sim.GameEngine;
 import push.sim.Move;
 import push.sim.Player.Direction;
