@@ -20,9 +20,9 @@ public class Util {
 		//find all valid moves for this player
 		ArrayList<Moves> moves = new ArrayList<Moves>();
 		ArrayList<Direction> dirs = new ArrayList<Direction>();
-		dirs.add(home.getLeft());
+		dirs.add(home.getLeft().getOpposite());
 		dirs.add(home.getOpposite());
-		dirs.add(home.getRight());
+		dirs.add(home.getRight().getOpposite());
 		Move m;
 		//iterate through board
 		for(int i = 0; i < board.length; i++)
