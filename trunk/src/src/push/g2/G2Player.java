@@ -2,6 +2,7 @@ package push.g2;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Stack;
@@ -15,48 +16,107 @@ import push.sim.Player;
 
 public class G2Player extends Player{
 	
+	ArrayList<Opponent> opponents;
+	
 	int[][] board;
 	Direction myCorner;
-	Direction myOp;
 	int id;
-	private LinkedList<Point> queue;
-	int opId;
-	ArrayList<Direction> moves = new ArrayList<Direction>();
 	
-	public void updateBoardState(int[][] board)
-	{
-		this.board= board;
-	}
+	//Direction myOp;
+	//private LinkedList<Point> queue;
+	//int opId;
+	//ArrayList<Direction> moves = new ArrayList<Direction>();
 	
 	public String getName()
 	{
 		return "G2Player";
 	}
 	
+	// changes the current board state for G2 and the opponent objects
+	public void updateBoardState(int[][] board)
+	{
+		this.board= board;
+		
+		for(int oppCount=0; oppCount<6; oppCount++)
+		{
+			if(id != opponents.get(oppCount).oppId)
+			{
+				opponents.get(oppCount).board = board;
+			}
+		}
+	}
+	
+	// initializes the new board game settings
 	public void startNewGame(int id, int m, ArrayList<Direction> playerPositions) 
 	{
-		myCorner=playerPositions.get(id);
-		myOp=myCorner.getOpposite();
-		this.id=id;
-		queue = new LinkedList<Point>();
+		//create the list of opponents
+		opponents = new ArrayList<Opponent>(6);
+		for(int oppCount=0; oppCount<6; oppCount++)
+		{
+			if(oppCount != id)
+			{
+				opponents.set(oppCount, new Opponent(oppCount, 
+						playerPositions.get(oppCount), 
+						playerPositions.get(oppCount)));
+			}
+			else
+			{
+				opponents.set(oppCount, null);
+			}
+		}
 		
-		moves.add(myOp.getLeft());
-		moves.add(myOp.getRight());
-		moves.add(myOp.getOpposite());
+		myCorner=playerPositions.get(id);
+		this.id=id;
+		
+//		myOp=myCorner.getOpposite();
+//		queue = new LinkedList<Point>();
+//		moves.add(myOp.getLeft());
+//		moves.add(myOp.getRight());
+//		moves.add(myOp.getOpposite());
 	}
 
 	public Move makeMove(List<MoveResult> previousMoves)
 	{
-		//return generateRandomMove(0);
-		queue.addLast(getStartPoint());
-		Move m = depthSearch();
-		queue.clear();
-		return m;
+//		return generateRandomMove(0);
+//		queue.addLast(getStartPoint());
+//		Move m = depthSearch();
+//		queue.clear();
+//		return m;
+		
+		// add every opponent's move to their respective history
+		for(Opponent o : opponents)
+		{
+			if(o != null)
+			{
+				Move m = previousMoves.get(o.oppId).getMove();
+				o.addToHistory(Util.worthOfAMove(board, myCorner, m));
+			}
+		}
+		
+		Collections.sort(opponents);
+		Collections.reverse(opponents);
+		
+		//return the best move
+		for(Opponent o : opponents)
+		{
+			if(o != null)
+			{
+				Move ourMove = Util.getBestMove(board, o, myCorner); 
+				if(ourMove != null)
+					return ourMove;
+			}
+		}
+		
+		//no move is possible
+		return new Move(0,0, myCorner.getOpposite());
 	}
 	
+	/*public Point getStartPoint()
+	{
+		return myOp.getHome();
+	}*/
 	
-	
-	public Move depthSearch()
+	/*public Move depthSearch()
 	{
 		if(queue.isEmpty())
 			return(new Move(0,0, myCorner.getOpposite()));
@@ -79,9 +139,9 @@ public class G2Player extends Player{
 		}
 		
 		return depthSearch();
-	}
+	}*/
 	
-	public boolean isValid(Move m)
+	/*public boolean isValid(Move m)
 	{
 		if(m.getY()<0 || m.getY()>8 || m.getX()<0 || m.getX()>16)
 			return false;
@@ -96,14 +156,9 @@ public class G2Player extends Player{
 		return board[m.getY()][m.getX()]>0 && 
 			GameEngine.isValidDirectionForCellAndHome(m.getDirection(), myCorner) &&
 			GameEngine.isInBounds(m.getX()+m.getDirection().getDx(), m.getY()+m.getDirection().getDy());
-	}
+	}*/
 	
-	public Point getStartPoint()
-	{
-		return myOp.getHome();
-	}
-	
-	public Move generateRandomMove(int depth)
+	/*public Move generateRandomMove(int depth)
 	{
 		if(depth > 300)
 		{
@@ -139,5 +194,5 @@ public class G2Player extends Player{
 		
 		Move m = new Move(n1, n2,d);
 		return m;
-	}
+	} */
 }
