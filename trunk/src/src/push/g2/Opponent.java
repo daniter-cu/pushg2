@@ -17,46 +17,54 @@ public class Opponent
 	public int oppId = 0;
 	public int[][] board;
 	public Direction g2Corner;
+	public Direction oppCorner;
 	
-	public LinkedList<Double> history = new LinkedList<Double>();
+	public LinkedList<Double> valHistory;
 	
 	// negative value = defect opponent
 	// 0 = neutral opponent
 	// positive value = cooperative opponent
 	public double totalValue = 0.0;
 	
-	public Opponent(int idNum, Direction myCorner)
+	public Opponent(int idNum, Direction myCorner, Direction opposingCorner)
 	{
 		g2Corner = myCorner;
 		oppId = idNum;
-		history = new LinkedList<Double>();
+		oppCorner = opposingCorner;
+		
+		valHistory = new LinkedList<Double>();
 	}
 	
-	// adds a move to the value
+	// adds the player's most recent move to the historical stack
 	public void addToHistory(double val)
 	{
-		if(history.size() > HISTORY_MEMORY)
+		if(valHistory.size() > HISTORY_MEMORY)
 		{
-			history.remove();
+			valHistory.remove();
 		}
 		
-		history.addLast(val);
+		valHistory.addLast(val);
 	}
 	
-	//updates the player's total score
-	public void updateValue(int oldDistance, int newDistance, int numCoins)
+	// gets the opponent's total average "value"
+	public double getHistoricalValAverage()
 	{
+		double avgVal = 0.0;
+		double count = 0.0; 
 		
+		for(Double val : valHistory)
+		{
+			avgVal += val;
+			count++;
+		}
+		
+		return avgVal/count;
 	}
-	
-	//calculates the worth of any move made in the previous round for G2Player
-	public double worthOfAMove(Move m)
-    {
-        double worth=0.0;
-        double oldDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getX(),m.getY()));
-        int newDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getNewX(),m.getNewY()));
-        int coins= board[m.getNewY()][m.getNewX()];
-        worth = (coins)*((oldDistance-newDistance)-1);
-        return worth;
-    }
 }
+
+
+
+
+
+
+
