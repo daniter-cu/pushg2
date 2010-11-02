@@ -10,7 +10,7 @@ import push.sim.MoveResult;
 import push.sim.Player;
 import push.sim.Player.Direction;
 
-public class Opponent
+public class Opponent implements Comparable<Opponent>
 {
 	public static final int HISTORY_MEMORY = 10;
 	
@@ -59,6 +59,15 @@ public class Opponent
 		}
 		
 		return avgVal/count;
+	}
+
+	@Override
+	public int compareTo(Opponent opp2) {
+		if(Math.abs(this.totalValue) > Math.abs(opp2.totalValue))
+			return 1;
+		if(Math.abs(opp2.totalValue) > Math.abs(this.totalValue))
+			return -1;
+		return 0;
 	}
 }
 
