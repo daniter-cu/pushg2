@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Stack;
 import java.util.Queue;
 
+import org.apache.log4j.Logger;
+
 import push.sim.GameConfig;
 import push.sim.GameEngine;
 import push.sim.Move;
@@ -15,6 +17,8 @@ import push.sim.MoveResult;
 import push.sim.Player;
 
 public class G2Player extends Player{
+	
+	private Logger log = Logger.getLogger(this.getClass());
 	
 	ArrayList<Opponent> opponents;
 	
@@ -37,12 +41,9 @@ public class G2Player extends Player{
 	{
 		this.board= board;
 		
-		for(int oppCount=0; oppCount<6; oppCount++)
+		for(Opponent o : opponents)
 		{
-			if(id != opponents.get(oppCount).oppId)
-			{
-				opponents.get(oppCount).board = board;
-			}
+			o.board = board;
 		}
 	}
 	
@@ -50,24 +51,21 @@ public class G2Player extends Player{
 	public void startNewGame(int id, int m, ArrayList<Direction> playerPositions) 
 	{
 		//create the list of opponents
-		opponents = new ArrayList<Opponent>(6);
+		opponents = new ArrayList<Opponent>();
 		for(int oppCount=0; oppCount<6; oppCount++)
 		{
 			if(oppCount != id)
 			{
-				opponents.set(oppCount, new Opponent(oppCount, 
+				opponents.add(new Opponent(oppCount, 
 						playerPositions.get(oppCount), 
 						playerPositions.get(oppCount)));
-			}
-			else
-			{
-				opponents.set(oppCount, null);
 			}
 		}
 		
 		myCorner=playerPositions.get(id);
 		this.id=id;
 		
+		log.error("finished start");
 //		myOp=myCorner.getOpposite();
 //		queue = new LinkedList<Point>();
 //		moves.add(myOp.getLeft());
@@ -83,31 +81,42 @@ public class G2Player extends Player{
 //		queue.clear();
 //		return m;
 		
-		// add every opponent's move to their respective history
-		for(Opponent o : opponents)
+		try
 		{
-			if(o != null)
+			// add every opponent's move to their respective history
+			if(previousMoves.isEmpty())
+			{
+				return new Move(8, 4, myCorner.getOpposite());
+			}
+			
+			// it's not the first move
+			for(Opponent o : opponents)
 			{
 				Move m = previousMoves.get(o.oppId).getMove();
 				o.addToHistory(Util.worthOfAMove(board, myCorner, m));
 			}
-		}
-		
-		Collections.sort(opponents);
-		Collections.reverse(opponents);
-		
-		//return the best move
-		for(Opponent o : opponents)
-		{
-			if(o != null)
+			
+			Collections.sort(opponents);
+			Collections.reverse(opponents);
+			log.error("sorting finished");
+			
+			//return the best move
+			for(Opponent o : opponents)
 			{
 				Move ourMove = Util.getBestMove(board, o, myCorner); 
 				if(ourMove != null)
+				{
+					log.error(ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
 					return ourMove;
+				}
 			}
 		}
+		catch(Exception e)
+		{
+			log.error(e);
+		}
 		
-		//no move is possible
+		//no move is possible (or it's the first turn)
 		return new Move(0,0, myCorner.getOpposite());
 	}
 	
@@ -158,8 +167,9 @@ public class G2Player extends Player{
 			GameEngine.isInBounds(m.getX()+m.getDirection().getDx(), m.getY()+m.getDirection().getDy());
 	}*/
 	
-	/*public Move generateRandomMove(int depth)
+	public Move generateRandomMove(int depth)
 	{
+		log.error("generating a rando");
 		if(depth > 300)
 		{
 			return new Move(0,0,Direction.NE);
@@ -194,5 +204,5 @@ public class G2Player extends Player{
 		
 		Move m = new Move(n1, n2,d);
 		return m;
-	} */
+	}
 }
