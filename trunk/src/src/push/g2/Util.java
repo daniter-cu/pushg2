@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 
 import push.sim.GameEngine;
 import push.sim.Move;
+import push.sim.MoveResult;
 import push.sim.Player.Direction;
 
 import org.apache.log4j.Logger;
@@ -24,6 +25,7 @@ public class Util {
 		dirs.add(home.getOpposite());
 		dirs.add(home.getRight().getOpposite());
 		Move m;
+		
 		//iterate through board
 		for(int i = 0; i < board.length; i++)
 		{
@@ -34,15 +36,16 @@ public class Util {
 				//check if move is valid
 				for(Direction d : dirs)
 				{
-					m = new Move(i,j,d);
+					m = new Move(j,i,d);
 					if(isValid(m,board,home))
 					{
+						//log.error("VALID: " + m.getX() + "," + m.getY() + ": " + m.getDirection());
 						moves.add(new Moves(m,worthOfAMove(board,op.oppCorner,m)));
 						//if it is, get value, add to list	
 					}
 					else
 					{
-						log.error(m.getX() + "," + m.getY() + ": " + m.getDirection());
+						//log.error("INVALID: " + m.getX() + "," + m.getY() + ": " + m.getDirection());
 					}
 				}	
 			}
@@ -87,19 +90,32 @@ public class Util {
 	
 	private static boolean isValid(Move m, int[][] board, Direction myCorner)
 	{
-		if(m.getY()<0 || m.getY()>8 || m.getX()<0 || m.getX()>16)
+		return isSuccessByBoundsEtc(m, myCorner)
+			&& isSuccessByCount(m, board)
+			&& GameEngine.isValidDirectionForCellAndHome(m.getDirection(), myCorner);
+	}
+	
+	private static boolean isSuccessByBoundsEtc(Move m, Direction home) {
+		// Check that we are in bounds
+		if (!GameEngine.isInBounds(m.getNewX(), m.getNewY()))
 			return false;
-
-		//System.err.println("board top: " + board.length);
-		//System.err.println("board left: " + board[0].length);
-		
-		//System.err.println("left move: " + m.getY());
-		//System.err.println("top  move: " + m.getX());
-		//System.err.println("dir: " + m.getDirection().name());
-		
-		return board[m.getY()][m.getX()]>0 && 
-			GameEngine.isValidDirectionForCellAndHome(m.getDirection(), myCorner) &&
-			GameEngine.isInBounds(m.getX()+m.getDirection().getDx(), m.getY()+m.getDirection().getDy());
+		if (!GameEngine.isInBounds(m.getX(), m.getY()))
+			return false;
+		// Check that the direction is OK
+		if (!m.getDirection().equals(home.getRelative(0))
+				&& !m.getDirection()
+						.equals(home.getRelative(-1))
+				&& !m.getDirection()
+						.equals(home.getRelative(1)))
+			return false;
+		return true;
+	}
+	
+	private static boolean isSuccessByCount(Move m, int[][] board) {
+		// Check that there are > 0 in this position
+		if (board[m.getY()][m.getX()] == 0)
+			return false;
+		return true;
 	}
 	
 	private static class Moves implements Comparable<Moves> {
