@@ -63,9 +63,13 @@ public class G2Player extends Player{
 						playerPositions.get(oppCount)));
 			}
 		}
-		
-		myCorner=playerPositions.get(id);
 		this.id=id;
+		myCorner=playerPositions.get(id);
+		
+		
+		log.error(myCorner.getOpposite());
+		log.error(myCorner.getLeft());
+		log.error(myCorner.getRight());
 		
 		log.error("finished start");
 //		myOp=myCorner.getOpposite();
