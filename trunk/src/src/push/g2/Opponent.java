@@ -23,7 +23,7 @@ public class Opponent
 	// negative value = defect opponent
 	// 0 = neutral opponent
 	// positive value = cooperative opponent
-	public double totalValue = 0;
+	public double totalValue = 0.0;
 	
 	public Opponent(int idNum, Direction myCorner)
 	{
@@ -54,9 +54,9 @@ public class Opponent
     {
         double worth=0.0;
         double oldDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getX(),m.getY()));
-        double newDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getNewX(),m.getNewY()));
-        double coins= board[m.getNewY()][m.getNewX()];
-        worth = (coins)*((oldDistance-newDistance)-1.0);
+        int newDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getNewX(),m.getNewY()));
+        int coins= board[m.getNewY()][m.getNewX()];
+        worth = (coins)*((oldDistance-newDistance)-1);
         return worth;
     }
 }
