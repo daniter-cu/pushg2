@@ -2,12 +2,20 @@ package push.g2;
 
 import java.util.*;
 
+import push.sim.GameConfig;
+import push.sim.GameEngine;
+import push.sim.Move;
+import push.sim.MoveResult;
+import push.sim.Player;
+import push.sim.Player.Direction;
+
 public class Opponent
 {
 	public static final int HISTORY_MEMORY = 10;
 	
 	public int oppId = 0;
 	public int[][] board;
+	public Direction g2Corner;
 	
 	public LinkedList<Double> history = new LinkedList<Double>();
 	
@@ -16,8 +24,9 @@ public class Opponent
 	// positive value = cooperative opponent
 	public double totalValue = 0;
 	
-	public Opponent(int idNum)
+	public Opponent(int idNum, Direction myCorner)
 	{
+		g2Corner = myCorner;
 		oppId = idNum;
 		history = new LinkedList<Double>();
 	}
