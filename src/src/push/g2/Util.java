@@ -52,12 +52,13 @@ public class Util {
 		}
 		
 		//sort list
+		log.error("Play to go after = " + op.oppId);
 		return getBest(moves, op.totalValue);
 	}
 	
 	private static Move getBest(ArrayList<Moves> moves, double gold) 
 	{
-		Moves best = null;
+		/*Moves best = null;
 		double minDist = Integer.MAX_VALUE;
 		for(Moves m : moves)
 		{
@@ -72,7 +73,44 @@ public class Util {
 		
 		
 		if(best != null)
+		{
+		//	log.error("value of best move " + best.getVal());
 			return best.getM();
+		}
+		
+		return null;*/
+		Moves best = null;
+		double minDist = 0;
+		if(gold > 0)
+			minDist = Integer.MIN_VALUE;
+		else
+			minDist = Integer.MAX_VALUE;
+		for(Moves m : moves)
+		{
+			if(gold >0)
+			{
+				if(m.getVal() > minDist)
+				{
+					minDist = m.getVal();
+					best = m;
+				}
+			}
+			else
+			{
+				if(m.getVal() < minDist)
+				{
+					minDist = m.getVal();
+					best = m;
+				}
+			}
+		}
+		
+		
+		if(best != null)
+		{
+			log.error("value of best move " + best.getVal());
+			return best.getM();
+		}
 		
 		return null;
 	}
@@ -84,7 +122,7 @@ public class Util {
         double oldDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getX(),m.getY()));
         double newDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getNewX(),m.getNewY()));
         double coins= board[m.getNewY()][m.getNewX()];
-        worth = (coins)*((oldDistance-newDistance)-1);
+        worth = (coins)*((oldDistance/newDistance)-1.0);
         return worth;
     }
 	
