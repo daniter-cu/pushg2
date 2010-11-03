@@ -109,7 +109,7 @@ public class G2Player extends Player{
 			
 			for(Opponent o : opponents)
 			{
-				log.error(o.oppId + " : " + o.totalValue);
+				log.debug(o.oppId + " : " + o.totalValue);
 			}
 			
 			//return the best move
@@ -118,7 +118,7 @@ public class G2Player extends Player{
 				Move ourMove = Util.getBestMove(board, o, myCorner); 
 				if(ourMove != null)
 				{
-					//log.error(ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
+					//log.debug(ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
 					return ourMove;
 				}
 			}
@@ -130,9 +130,9 @@ public class G2Player extends Player{
 			e.printStackTrace(pw);
 			pw.flush();
 			sw.flush();
-			log.error(sw.toString());
+			log.debug(sw.toString());
 		}
-		log.error("Printing default move");
+		log.debug("Printing default move");
 		//no move is possible (or it's the first turn)
 		return new Move(0,0, myCorner.getOpposite());
 	}
@@ -186,7 +186,7 @@ public class G2Player extends Player{
 	
 	public Move generateRandomMove(int depth)
 	{
-		log.error("generating a rando");
+		log.debug("generating a rando");
 		if(depth > 300)
 		{
 			return new Move(0,0,Direction.NE);

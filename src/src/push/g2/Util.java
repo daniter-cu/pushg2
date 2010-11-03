@@ -39,20 +39,20 @@ public class Util {
 					m = new Move(j,i,d);
 					if(isValid(m,board,home))
 					{
-						//log.error("VALID: " + m.getX() + "," + m.getY() + ": " + m.getDirection());
+						//log.debug("VALID: " + m.getX() + "," + m.getY() + ": " + m.getDirection());
 						moves.add(new Moves(m,worthOfAMove(board,op.oppCorner,m)));
 						//if it is, get value, add to list	
 					}
 					else
 					{
-						//log.error("INVALID: " + m.getX() + "," + m.getY() + ": " + m.getDirection());
+						//log.debug("INVALID: " + m.getX() + "," + m.getY() + ": " + m.getDirection());
 					}
 				}	
 			}
 		}
 		
 		//sort list
-		log.error("Play to go after = " + op.oppId);
+		log.debug("Play to go after = " + op.oppId);
 		return getBest(moves, op.totalValue);
 	}
 	
@@ -74,7 +74,7 @@ public class Util {
 		
 		if(best != null)
 		{
-		//	log.error("value of best move " + best.getVal());
+		//	log.debug("value of best move " + best.getVal());
 			return best.getM();
 		}
 		
@@ -87,7 +87,8 @@ public class Util {
 			minDist = 1000;
 		for(Moves m : moves)
 		{
-			if(gold >0)
+			log.debug(m.getVal());
+			if(gold > 0)
 			{
 				if(m.getVal() > minDist)
 				{
@@ -108,7 +109,7 @@ public class Util {
 		
 		if(best != null)
 		{
-			log.error("value of best move " + best.getVal());
+			log.debug("value of best move " + best.getVal());
 			return best.getM();
 		}
 		
@@ -122,6 +123,8 @@ public class Util {
         double oldDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getX(),m.getY()));
         double newDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getNewX(),m.getNewY()));
         double coins= board[m.getNewY()][m.getNewX()];
+        if(newDistance == 0)
+        	newDistance = 0.1;
         worth = (coins)*((oldDistance/newDistance)-1.0);
         return worth;
     }
