@@ -82,9 +82,9 @@ public class Util {
 		Moves best = null;
 		double minDist = 0;
 		if(gold > 0)
-			minDist = Integer.MIN_VALUE;
+			minDist = -1000;
 		else
-			minDist = Integer.MAX_VALUE;
+			minDist = 1000;
 		for(Moves m : moves)
 		{
 			if(gold >0)
