@@ -44,10 +44,12 @@ public class Opponent implements Comparable<Opponent>
 		}
 		
 		valHistory.addLast(val);
+		
+		totalValue = updateHistoricalValAverage();
 	}
 	
 	// gets the opponent's total average "value"
-	public double getHistoricalValAverage()
+	private double updateHistoricalValAverage()
 	{
 		double avgVal = 0.0;
 		double count = 0.0; 
