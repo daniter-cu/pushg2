@@ -66,12 +66,6 @@ public class G2Player extends Player{
 		this.id=id;
 		myCorner=playerPositions.get(id);
 		
-		
-		log.error(myCorner.getOpposite());
-		log.error(myCorner.getLeft());
-		log.error(myCorner.getRight());
-		
-		log.error("finished start");
 //		myOp=myCorner.getOpposite();
 //		queue = new LinkedList<Point>();
 //		moves.add(myOp.getLeft());
@@ -118,7 +112,7 @@ public class G2Player extends Player{
 				Move ourMove = Util.getBestMove(board, o, myCorner); 
 				if(ourMove != null)
 				{
-					log.error(ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
+					//log.error(ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
 					return ourMove;
 				}
 			}
