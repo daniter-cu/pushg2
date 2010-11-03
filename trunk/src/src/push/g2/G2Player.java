@@ -97,7 +97,8 @@ public class G2Player extends Player{
 					if(mr.getPlayerId() == opponents.get(x).oppId)
 					{
 						Move m = mr.getMove();
-						opponents.get(x).addToHistory(Util.worthOfAMove(board, myCorner, m));
+						Opponent op = opponents.get(x);
+						op.addToHistory(Util.worthOfAMove(board, myCorner, m));
 						break;
 					}
 				}
@@ -105,6 +106,11 @@ public class G2Player extends Player{
 			
 			Collections.sort(opponents);
 			Collections.reverse(opponents);
+			
+			for(Opponent o : opponents)
+			{
+				log.error(o.oppId + " : " + o.totalValue);
+			}
 			
 			//return the best move
 			for(Opponent o : opponents)
@@ -126,7 +132,7 @@ public class G2Player extends Player{
 			sw.flush();
 			log.error(sw.toString());
 		}
-		log.error("Printing shitty move");
+		log.error("Printing default move");
 		//no move is possible (or it's the first turn)
 		return new Move(0,0, myCorner.getOpposite());
 	}
