@@ -28,11 +28,6 @@ public class G2Player extends Player{
 	Direction myCorner;
 	int id;
 	
-	//Direction myOp;
-	//private LinkedList<Point> queue;
-	//int opId;
-	//ArrayList<Direction> moves = new ArrayList<Direction>();
-	
 	public String getName()
 	{
 		return "G2Player";
@@ -65,22 +60,10 @@ public class G2Player extends Player{
 		}
 		this.id=id;
 		myCorner=playerPositions.get(id);
-		
-//		myOp=myCorner.getOpposite();
-//		queue = new LinkedList<Point>();
-//		moves.add(myOp.getLeft());
-//		moves.add(myOp.getRight());
-//		moves.add(myOp.getOpposite());
 	}
 
 	public Move makeMove(List<MoveResult> previousMoves)
 	{
-//		return generateRandomMove(0);
-//		queue.addLast(getStartPoint());
-//		Move m = depthSearch();
-//		queue.clear();
-//		return m;
-		
 		try
 		{
 			// add every opponent's move to their respective history
@@ -136,53 +119,6 @@ public class G2Player extends Player{
 		//no move is possible (or it's the first turn)
 		return new Move(0,0, myCorner.getOpposite());
 	}
-	
-	/*public Point getStartPoint()
-	{
-		return myOp.getHome();
-	}*/
-	
-	/*public Move depthSearch()
-	{
-		if(queue.isEmpty())
-			return(new Move(0,0, myCorner.getOpposite()));
-		
-		Point start = queue.removeFirst();
-
-		Move m;
-		for(int i = 0; i< 3; i++)
-		{
-			m = new Move(start.x, start.y, moves.get(i));
-			if(isValid(m))
-			{
-				return m;
-			}
-		}
-		
-		for(int i = 0; i < 3; i++)
-		{
-			queue.addLast(new Point(start.x+moves.get(i).getDx(), start.y+moves.get(i).getDy()));
-		}
-		
-		return depthSearch();
-	}*/
-	
-	/*public boolean isValid(Move m)
-	{
-		if(m.getY()<0 || m.getY()>8 || m.getX()<0 || m.getX()>16)
-			return false;
-
-		System.err.println("board top: " + board.length);
-		System.err.println("board left: " + board[0].length);
-		
-		System.err.println("left move: " + m.getY());
-		System.err.println("top  move: " + m.getX());
-		System.err.println("dir: " + m.getDirection().name());
-		
-		return board[m.getY()][m.getX()]>0 && 
-			GameEngine.isValidDirectionForCellAndHome(m.getDirection(), myCorner) &&
-			GameEngine.isInBounds(m.getX()+m.getDirection().getDx(), m.getY()+m.getDirection().getDy());
-	}*/
 	
 	public Move generateRandomMove(int depth)
 	{
