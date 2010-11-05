@@ -24,7 +24,8 @@ public class G2Player extends Player{
 	
 	ArrayList<Opponent> opponents;
 	
-	int[][] board;
+	int[][] board; //first set of arrays=9, second set of arrays=17
+	int[][] prevBoard;
 	Direction myCorner;
 	int id;
 	
@@ -36,11 +37,14 @@ public class G2Player extends Player{
 	// changes the current board state for G2 and the opponent objects
 	public void updateBoardState(int[][] board)
 	{
-		this.board= board;
+		prevBoard = this.board;
+		this.board = Util.cloneBoard(board);
 		
 		for(Opponent o : opponents)
 		{
-			o.board = board;
+			o.prevBoard = prevBoard;
+			o.board = Util.cloneBoard(board);
+			o.score = Util.getCurrentScore(o.oppCorner, board);
 		}
 	}
 	
@@ -82,6 +86,7 @@ public class G2Player extends Player{
 						Move m = mr.getMove();
 						Opponent op = opponents.get(x);
 						op.addToHistory(Util.worthOfAMove(board, myCorner, m));
+						op.updateOwedDebt(m);
 						break;
 					}
 				}
@@ -98,11 +103,19 @@ public class G2Player extends Player{
 			//return the best move
 			for(Opponent o : opponents)
 			{
-				Move ourMove = Util.getBestMove(board, o, myCorner); 
+				//tries to return a move that doesn't hurt us
+				Move ourMove = Util.getBestMove(board, o, myCorner, false); 
 				if(ourMove != null)
 				{
-					//log.debug(ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
+					log.error("GOOD MOVE: " + ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
 					return ourMove;
+				}
+				else
+				{
+					// if moves only exist that hurt us, then we have to play them
+					ourMove = Util.getBestMove(board, o, myCorner, true);
+					log.error("BAD MOVE: " + ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
+					return ourMove; //CHANGE THIS STRATEGY FOR LATER
 				}
 			}
 		}

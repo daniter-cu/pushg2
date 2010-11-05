@@ -16,7 +16,7 @@ public class Util {
 
 	public static Logger log = Logger.getLogger("Util");
 	
-	public static Move getBestMove(int[][] board, Opponent op, Direction home)
+	public static Move getBestMove(int[][] board, Opponent op, Direction home, boolean ignoreSelfHurt)
 	{
 		//find all valid moves for this player
 		ArrayList<Moves> moves = new ArrayList<Moves>();
@@ -33,15 +33,22 @@ public class Util {
 			{
 				if(board[i][j] < 1)
 					continue;
+				
 				//check if move is valid
 				for(Direction d : dirs)
 				{
 					m = new Move(j,i,d);
 					if(isValid(m,board,home))
 					{
+						// if we don't care about hurting ourselves, every move is valid
+						if(ignoreSelfHurt)
+							moves.add(new Moves(m,worthOfAMove(board,op.oppCorner,m)));
+						// if we don't want to hurt ourselves, only add moves that don't hurt us
+						else if(affectsPlayerScore(home, m, board) >= 0)
+							moves.add(new Moves(m,worthOfAMove(board,op.oppCorner,m)));
+						
 						//log.debug("VALID: " + m.getX() + "," + m.getY() + ": " + m.getDirection());
-						moves.add(new Moves(m,worthOfAMove(board,op.oppCorner,m)));
-						//if it is, get value, add to list	
+						//moves.add(new Moves(m,worthOfAMove(board,op.oppCorner,m)));
 					}
 					else
 					{
@@ -53,6 +60,7 @@ public class Util {
 		
 		//sort list
 		log.debug("Play to go after = " + op.oppId);
+		
 		return getBest(moves, op.totalValue);
 	}
 	
@@ -133,6 +141,84 @@ public class Util {
         return worth;
     }
 	
+	// returns how much a move affects the player's score
+	public static int affectsPlayerScore(Direction playerCorner, Move m, int[][] board)
+	{
+		int[][] bCopy = cloneBoard(board);
+		
+		// get the current score of the player
+		int oldScore = getCurrentScore(playerCorner, bCopy);
+		
+		// get the potential new score of the player
+		int numCoins = bCopy[m.getY()][m.getX()];
+		bCopy[m.getY()][m.getX()] = 0;
+		bCopy[m.getNewY()][m.getNewX()] += numCoins;
+		int newScore = getCurrentScore(playerCorner, bCopy);
+		
+		return newScore - oldScore;
+	}
+	
+	public static int getCurrentScore(Direction corner, int[][] board)
+	{
+		int currentScore = 0;
+		int homeCellX = corner.getHome().x;
+		int homeCellY = corner.getHome().y;
+		Direction out = corner.getOpposite();
+		Direction right = corner.getLeft().getOpposite();
+		Direction left = corner.getRight().getOpposite();
+		
+		int newY=0, newX=0;
+		
+		//4 point cells
+		newY = homeCellY;
+		newX = homeCellX;
+		currentScore += 4*board[newY][newX];
+		
+		//3 point cells
+		newY = homeCellY+out.getDy();
+		newX = homeCellX+out.getDx();
+		currentScore += 3*board[newY][newX];
+		
+		//2 point cells
+		newY = homeCellY+right.getDy();
+		newX = homeCellX+right.getDx();
+		currentScore += 2*board[newY][newX];
+		newY = homeCellY+left.getDy();
+		newX = homeCellX+left.getDx();
+		currentScore += 2*board[newY][newX];
+		newY = homeCellY+out.getDy()*2;
+		newX = homeCellX+out.getDx()*2;
+		currentScore += 2*board[newY][newX];
+		
+		//1 point cells
+		newY = homeCellY+out.getDy()+right.getDy();
+		newX = homeCellX+out.getDx()+right.getDx();
+		currentScore += 1*board[newY][newX];
+		newY = homeCellY+out.getDy()+left.getDy();
+		newX = homeCellX+out.getDx()+left.getDx();
+		currentScore += 1*board[newY][newX];
+		newY = homeCellY+out.getDy()*3;
+		newX = homeCellX+out.getDx()*3;
+		currentScore += 1*board[newY][newX];
+		
+		return currentScore;
+	}
+	
+	public static int[][] cloneBoard(int[][] board)
+	{
+		int[][] newBoard = new int[board.length][board[0].length];
+		
+		for(int x=0; x<board.length; x++)
+		{
+			for(int y=0; y<board.length; y++)
+			{
+				newBoard[x][y] = board[x][y];
+			}
+		}
+		
+		return newBoard;
+	}
+	
 	private static boolean isValid(Move m, int[][] board, Direction myCorner)
 	{
 		return isSuccessByBoundsEtc(m, myCorner)
@@ -163,6 +249,7 @@ public class Util {
 		return true;
 	}
 	
+	
 	private static class Moves implements Comparable<Moves> {
 		private Move m;
 		private double val;
@@ -190,8 +277,6 @@ public class Util {
 				return -1;
 			return 0;
 		}
-		
-		
 	}
 }
 
