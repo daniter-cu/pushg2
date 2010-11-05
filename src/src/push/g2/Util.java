@@ -123,6 +123,10 @@ public class Util {
         double oldDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getX(),m.getY()));
         double newDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getNewX(),m.getNewY()));
         double coins= board[m.getNewY()][m.getNewX()];
+        if(oldDistance==newDistance)
+        {
+        	
+        }
         if(newDistance == 0)
         	newDistance = 0.1;
         worth = (coins)*((oldDistance/newDistance)-1.0);
