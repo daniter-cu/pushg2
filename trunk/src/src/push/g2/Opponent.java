@@ -25,6 +25,7 @@ public class Opponent implements Comparable<Opponent>
 	
 	public LinkedList<Double> valHistory;
 	public LinkedList<Double> potentialHistory;
+	public LinkedList<Integer> helpedHistory;
 	
 	// negative value = defect opponent
 	// 0 = neutral opponent
@@ -37,7 +38,10 @@ public class Opponent implements Comparable<Opponent>
 	
 	// potential that they could have helped us, averaged over previous rounds
 	// vs. the amount that they actually helped us
-	public double totalPotentialValue = 0.0;
+	public double totalPotentialHelped = 0.0;
+	
+	// this is the amount helped over time
+	public double totalAmountHelped = 0.0;
 	
 	public Opponent(int idNum, Direction myCorner, Direction opposingCorner)
 	{
@@ -48,8 +52,20 @@ public class Opponent implements Comparable<Opponent>
 		valHistory = new LinkedList<Double>();
 	}
 	
+	public void addToAmountHelpedHistory(int amountHelped)
+	{
+		if(helpedHistory.size() == HISTORY_MEMORY)
+		{
+			helpedHistory.remove();
+		}
+		
+		helpedHistory.addLast(amountHelped);
+		
+		totalAmountHelped = updateHistoricalHelpedAverage();
+	}
+	
 	// adds the player's most recent move to the historical stack
-	public void addToHistory(double val)
+	public void addToValueHistory(double val)
 	{
 		if(valHistory.size() == HISTORY_MEMORY)
 		{
@@ -107,7 +123,7 @@ public class Opponent implements Comparable<Opponent>
 		}
 		
 		potentialHistory.addLast(potentialAffected);
-		totalPotentialValue = updateHistoricalPotentialAverage();
+		totalPotentialHelped = updateHistoricalPotentialAverage();
 	}
 	
 	// determines how much an opponent affected g2
@@ -135,22 +151,41 @@ public class Opponent implements Comparable<Opponent>
 	private double updateHistoricalPotentialAverage()
 	{
 		double avgVal = 0.0;
+		double denominator = 0.0;
 		double count = 0.0; 
 		
 		for(Double val : potentialHistory)
 		{
-			avgVal += val;
+			avgVal += count * val;
+			denominator += count;
 			count += 1.0;
 		}
 		
-		return avgVal/count;
+		return avgVal/denominator;
+	}
+	
+	private double updateHistoricalHelpedAverage()
+	{
+		double curAvgHelped = 0.0;
+		double denominator = 0.0;
+		double count = 1.0;
+		
+		//weighted average with 10 being the most recent, and 1 being the least recent
+		for(Integer amtHelped : helpedHistory)
+		{
+			curAvgHelped += count * (double)amtHelped;
+			denominator += count;
+			count += 1.0;
+		}
+		
+		return curAvgHelped/denominator;
 	}
 	
 	@Override
 	public int compareTo(Opponent opp2) {
-		if(Math.abs(this.totalValue) > Math.abs(opp2.totalValue))
+		if(this.totalAmountHelped > opp2.totalAmountHelped)
 			return 1;
-		if(Math.abs(opp2.totalValue) > Math.abs(this.totalValue))
+		if(totalAmountHelped >this.totalAmountHelped)
 			return -1;
 		return 0;
 	}
