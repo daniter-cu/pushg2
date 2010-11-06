@@ -156,6 +156,7 @@ public final class GameEngine {
 						.getMaxRounds())) {
 			// GAME OVER!
 			notifyListeners(GameUpdateType.GAMEOVER);
+			lastRound = new ArrayList<MoveResult>();
 			return false;
 		}
 
@@ -170,7 +171,7 @@ public final class GameEngine {
 			}
 			catch(Exception e)
 			{
-				log.error(e.toString() + " at player " + i + " (" + players.get(i) + ")");
+				log.error(e.toString() + " at player " + i + " (" + players.get(i) + ")", e);
 				thisMove=new Move(0, 0, Direction.E);
 			}
 			MoveResult r = new MoveResult(thisMove, i);
