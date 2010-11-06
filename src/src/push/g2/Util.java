@@ -66,7 +66,67 @@ public class Util {
 	
 	private static Move getBest(ArrayList<Moves> moves, double gold) 
 	{
-		/*Moves best = null;
+		Moves best = null;
+		double val = -999999;
+		for(Moves m: moves)
+		{
+			if(m.getVal() >= 1)
+			{
+				if(m.getVal() > val)
+				{
+					best = m;
+					val = m.getVal();
+				}
+			}
+			else if(m.getVal() < 1 && m.getVal() > 0)
+			{
+				if(val >= 1){
+					continue;
+				}
+				else if(val < 0)
+				{
+					val = m.getVal();
+					best = m;
+				}
+				else if(m.getVal() < val){
+					val = m.getVal();
+					best = m;
+				}
+			}
+			else if(m.getVal() < 0 && m.getVal() >= -1)
+			{
+				if(val >= 0){
+					continue;
+				}
+				else if(val < -1)
+				{
+					val = m.getVal();
+					best = m;
+				}
+				else if(m.getVal() < val){
+					val = m.getVal();
+					best = m;
+				}
+			}
+			else if(m.getVal() <= -1)
+			{
+				if(val > -1 )
+					continue;
+				if(m.getVal() > val)
+				{
+					best = m;
+					val = m.getVal();
+				}
+			}
+		}
+		if(best != null)
+		{
+			return best.getM();
+		}
+		return null;
+		
+		/*
+		Moves best = null;
 		double minDist = Integer.MAX_VALUE;
 		for(Moves m : moves)
 		{
@@ -87,6 +147,7 @@ public class Util {
 		}
 		
 		return null;*/
+		/*
 		Moves best = null;
 		double minDist = 0;
 		if(gold > 0)
@@ -122,11 +183,27 @@ public class Util {
 		}
 		
 		return null;
+		*/
 	}
 
 	//calculates the worth of any move made in the previous round for G2Player
 	public static double worthOfAMove(int[][]board, Direction g2Corner, Move m)
     {
+		double points = affectsPlayerScore(g2Corner, m, board); 
+		if(points != 0)
+			return points;
+		else
+		{
+			double worth=0.0;
+	        double oldDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getX(),m.getY()));
+	        double newDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getNewX(),m.getNewY()));
+	        double coins= board[m.getNewY()][m.getNewX()];
+	        if(newDistance == 0)
+	        	newDistance = 0.1;
+	        worth = 100*(coins)*((oldDistance-newDistance)/((newDistance+oldDistance)/2));
+	        return 1.0/worth;
+		}
+		/*
         double worth=0.0;
         double oldDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getX(),m.getY()));
         double newDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getNewX(),m.getNewY()));
@@ -139,6 +216,7 @@ public class Util {
         	newDistance = 0.1;
         worth = (coins)*((oldDistance/newDistance)-1.0);
         return worth;
+        */
     }
 	
 	// returns how much a move affects the player's score
