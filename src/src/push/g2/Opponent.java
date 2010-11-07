@@ -13,7 +13,7 @@ import push.sim.Player.Direction;
 
 public class Opponent implements Comparable<Opponent>
 {
-	public static final int HISTORY_MEMORY = 1;
+	public static final int HISTORY_MEMORY = 10;
 	
 	public int oppId = 0;
 	public int score = 16; //every player starts with 16 points
@@ -50,6 +50,8 @@ public class Opponent implements Comparable<Opponent>
 		oppCorner = opposingCorner;
 		
 		valHistory = new LinkedList<Double>();
+		potentialHistory = new LinkedList<Double>();
+		helpedHistory = new LinkedList<Integer>();
 	}
 	
 	public void addToAmountHelpedHistory(int amountHelped)
