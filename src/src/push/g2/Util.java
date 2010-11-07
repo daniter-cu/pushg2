@@ -16,6 +16,56 @@ public class Util {
 
 	public static Logger log = Logger.getLogger("Util");
 	
+	public static Move hurtSelfLeast(int[][] board, Direction home)
+	{
+		//find all valid moves for this player
+		ArrayList<Moves> moves = new ArrayList<Moves>();
+		ArrayList<Direction> dirs = new ArrayList<Direction>();
+		dirs.add(home.getLeft().getOpposite());
+		dirs.add(home.getOpposite());
+		dirs.add(home.getRight().getOpposite());
+		Move m;
+		
+		//iterate through board
+		for(int i = 0; i < board.length; i++)
+		{
+			for(int j = 0; j < board[0].length; j++)
+			{
+				if(board[i][j] < 1)
+					continue;
+				
+				//check if move is valid
+				for(Direction d : dirs)
+				{
+					m = new Move(j,i,d);
+					if(isValid(m,board,home))
+					{
+						moves.add(new Moves(m, affectsPlayerScore(home, m, board)));
+					}
+					else
+					{
+						//log.debug("INVALID: " + m.getX() + "," + m.getY() + ": " + m.getDirection());
+					}
+				}	
+			}
+		}
+		return getLeastHurtful(moves);
+	}
+	
+	private static Move getLeastHurtful(ArrayList<Moves> moves) {
+		double least = -1000;
+		Moves best = null;
+		for(Moves m: moves)
+		{
+			if(m.getVal() > least)
+			{
+				least = m.getVal();
+				best = m;
+			}
+		}
+		return best.getM();
+	}
+
 	public static Move getBestMove(int[][] board, Opponent op, Direction home, boolean ignoreSelfHurt)
 	{
 		//find all valid moves for this player
