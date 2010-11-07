@@ -86,6 +86,9 @@ public class G2Player extends Player{
 						Move m = mr.getMove();
 						Opponent op = opponents.get(x);
 						op.addToValueHistory(Util.worthOfAMove(board, myCorner, m));
+						int attemptedAffects = Util.affectsPlayerScore(myCorner, mr.getMove(), prevBoard);
+						log.error(mr.getPlayerId() + " tried to affect by " + attemptedAffects);
+						op.addToAmountHelpedHistory(attemptedAffects);
 						op.updateOwedDebt(m);
 						break;
 					}
@@ -97,7 +100,7 @@ public class G2Player extends Player{
 			
 			for(Opponent o : opponents)
 			{
-				log.debug(o.oppId + " : " + o.totalValue);
+				log.error(o.oppId + " total helped: " + o.totalAmountHelped);
 			}
 			
 			boolean reversed = false;
@@ -109,7 +112,8 @@ public class G2Player extends Player{
 				Move ourMove = Util.getBestMove(board, o, myCorner, false); 
 				if(ourMove != null)
 				{
-					//log.error("GOOD MOVE: " + ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
+					log.error("MOVE for " + o.oppId + ": " + 
+							ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
 					return ourMove;
 				}
 			}
