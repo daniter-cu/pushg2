@@ -59,7 +59,7 @@ public final class GameEngine {
 		board = new Board();
 		board.engine = this;
 		
-		log = Logger.getLogger(GameController.class);
+		log = Logger.getLogger(GameEngine.class);
 	}
 
 	public void addGameListener(GameListener l) {
@@ -171,7 +171,12 @@ public final class GameEngine {
 			}
 			catch(Exception e)
 			{
-				log.error(e.toString() + " at player " + i + " (" + players.get(i) + ")", e);
+				log.error(e.toString() + " at player " + i + " (" + players.get(i) + ") - trace follows");
+				int n = 0;
+				for(StackTraceElement el : e.getStackTrace())
+				{
+					log.error("\tat " + el.toString());
+				}
 				thisMove=new Move(0, 0, Direction.E);
 			}
 			MoveResult r = new MoveResult(thisMove, i);
