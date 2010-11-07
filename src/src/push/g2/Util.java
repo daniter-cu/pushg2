@@ -63,6 +63,7 @@ public class Util {
 				best = m;
 			}
 		}
+		log.error("hurtful move: " + best.getM());
 		return best.getM();
 	}
 
@@ -109,7 +110,7 @@ public class Util {
 		}
 		
 		//sort list
-		log.debug("Play to go after = " + op.oppId);
+		log.error("Play to go after = " + op.oppId);
 		
 		return getBest(moves, op.totalValue);
 	}
@@ -171,6 +172,7 @@ public class Util {
 		}
 		if(best != null)
 		{
+			log.error("Move: " +best.getM()+ " value: " + best.getVal());
 			return best.getM();
 		}
 		return null;
@@ -244,6 +246,8 @@ public class Util {
 			return points;
 		else
 		{
+			return 0;
+			/*
 			double worth=0.0;
 	        double oldDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getX(),m.getY()));
 	        double newDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getNewX(),m.getNewY()));
@@ -252,6 +256,7 @@ public class Util {
 	        	newDistance = 0.1;
 	        worth = 100*(coins)*((oldDistance-newDistance)/((newDistance+oldDistance)/2));
 	        return 1.0/worth;
+	        */
 		}
 		/*
         double worth=0.0;
