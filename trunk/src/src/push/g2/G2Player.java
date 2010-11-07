@@ -85,14 +85,14 @@ public class G2Player extends Player{
 					{
 						Move m = mr.getMove();
 						Opponent op = opponents.get(x);
-						op.addToHistory(Util.worthOfAMove(board, myCorner, m));
+						op.addToValueHistory(Util.worthOfAMove(board, myCorner, m));
 						op.updateOwedDebt(m);
 						break;
 					}
 				}
 			}
 			
-			Collections.sort(opponents);
+			Collections.sort(opponents); //sorts in ascending order, but we want the most useful one
 			Collections.reverse(opponents);
 			
 			for(Opponent o : opponents)
@@ -100,24 +100,40 @@ public class G2Player extends Player{
 				log.debug(o.oppId + " : " + o.totalValue);
 			}
 			
+			boolean reversed = false;
+			
 			//return the best move
 			for(Opponent o : opponents)
-			{
+			{	
 				//tries to return a move that doesn't hurt us
 				Move ourMove = Util.getBestMove(board, o, myCorner, false); 
 				if(ourMove != null)
 				{
-					log.error("GOOD MOVE: " + ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
+					//log.error("GOOD MOVE: " + ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
 					return ourMove;
 				}
-				else
-				{
-					// if moves only exist that hurt us, then we have to play them
-					ourMove = Util.getBestMove(board, o, myCorner, true);
-					log.error("BAD MOVE: " + ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
-					return ourMove; //CHANGE THIS STRATEGY FOR LATER
-				}
 			}
+			
+			//if there are no moves that help people and DON'T hurt us, then we must hurt ourselves
+			Move hurtSelf = Util.hurtSelfLeast(board, myCorner);
+			if(hurtSelf != null)
+				return hurtSelf;
+			
+//			for(Opponent o : opponents)
+//			{
+//				Move ourMove = Util.getBestMove(board, o, myCorner, true);
+//				if(ourMove != null)
+//				{
+//					//log.error("BAD MOVE: " + ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
+//					return ourMove;
+//				}
+//			}
+			
+			//to help certain opponents, but we can only hurt them
+			
+			//this is called only if the only moves we can make will hurt us
+			// THIS IS A LAST RESORT
+			return new Move(0,0,Direction.NE);
 		}
 		catch(Exception e)
 		{
@@ -128,6 +144,7 @@ public class G2Player extends Player{
 			sw.flush();
 			log.debug(sw.toString());
 		}
+		
 		log.debug("Printing default move");
 		//no move is possible (or it's the first turn)
 		return new Move(0,0, myCorner.getOpposite());
