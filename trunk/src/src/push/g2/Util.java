@@ -63,8 +63,12 @@ public class Util {
 				best = m;
 			}
 		}
-		log.error("hurtful move: " + best.getM());
-		return best.getM();
+		if(best != null){
+			log.error("hurtful move: " + best.getM());
+			return best.getM();
+		}
+		else
+			return null;
 	}
 
 	public static Move getBestMove(int[][] board, Opponent op, Direction home, boolean ignoreSelfHurt)
@@ -103,6 +107,7 @@ public class Util {
 					}
 					else
 					{
+						log.error("INVALID: " + m);
 						//log.debug("INVALID: " + m.getX() + "," + m.getY() + ": " + m.getDirection());
 					}
 				}	
@@ -110,8 +115,12 @@ public class Util {
 		}
 		
 		//sort list
-		log.error("Play to go after = " + op.oppId);
-		
+		log.debug("Play to go after = " + op.oppId);
+		log.error("Possible moves : " + moves.size());
+		for(Moves mvs : moves)
+		{
+			log.error(mvs.getM());
+		}
 		return getBest(moves, op.totalValue);
 	}
 	
@@ -119,6 +128,15 @@ public class Util {
 	{
 		Moves best = null;
 		double val = -999999;
+		for(Moves m: moves)
+		{
+			if(m.getVal() > val)
+			{
+				val = m.getVal();
+				best = m;
+			}
+		}
+		/*
 		for(Moves m: moves)
 		{
 			if(m.getVal() >= 1)
@@ -170,6 +188,7 @@ public class Util {
 				}
 			}
 		}
+		*/
 		if(best != null)
 		{
 			log.error("Move: " +best.getM()+ " value: " + best.getVal());
@@ -241,12 +260,10 @@ public class Util {
 	//calculates the worth of any move made in the previous round for G2Player
 	public static double worthOfAMove(int[][]board, Direction g2Corner, Move m)
     {
-		double points = affectsPlayerScore(g2Corner, m, board); 
-		if(points != 0)
-			return points;
-		else
-		{
-			return 0;
+		return affectsPlayerScore(g2Corner,m,board);
+		
+		//double points = affectsPlayerScore(g2Corner, m, board); 
+		
 			/*
 			double worth=0.0;
 	        double oldDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getX(),m.getY()));
@@ -257,7 +274,7 @@ public class Util {
 	        worth = 100*(coins)*((oldDistance-newDistance)/((newDistance+oldDistance)/2));
 	        return 1.0/worth;
 	        */
-		}
+		
 		/*
         double worth=0.0;
         double oldDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getX(),m.getY()));
@@ -339,6 +356,18 @@ public class Util {
 	
 	public static int[][] cloneBoard(int[][] board)
 	{
+		if(board == null)
+		{
+			int[][] newBoard = new int[9][17];
+			for(int x=0; x< newBoard.length; x++)
+			{
+				for(int y=0; y<newBoard.length; y++)
+				{
+					newBoard[x][y] = 0;
+				}
+			}
+			return newBoard;
+		}
 		int[][] newBoard = new int[board.length][board[0].length];
 		
 		for(int x=0; x<board.length; x++)
