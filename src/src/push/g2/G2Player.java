@@ -24,7 +24,7 @@ public class G2Player extends Player{
 	
 	ArrayList<Opponent> opponents;
 	
-	int curRound = 0;
+	int curRound = -1;
 	int[][] board; //first set of arrays=9, second set of arrays=17
 	int[][] prevBoard;
 	Direction myCorner;
@@ -66,12 +66,11 @@ public class G2Player extends Player{
 		}
 		this.id=id;
 		myCorner=playerPositions.get(id);
-		curRound = 0;
+		curRound = -1;
 	}
 
 	public Move makeMove(List<MoveResult> previousMoves)
 	{
-		log.error("\nCURRENT ROUND: " + curRound);
 		curRound++;
 		
 		int i = 0;

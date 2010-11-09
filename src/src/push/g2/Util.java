@@ -115,8 +115,8 @@ public class Util {
 		}
 		
 		//sort list
-		log.debug("Play to go after = " + op.oppId);
-		log.error("Possible moves : " + moves.size());
+		//log.debug("Play to go after = " + op.oppId);
+		//log.error("Possible moves : " + moves.size());
 		for(Moves mvs : moves)
 		{
 			//log.error(mvs.getM());
@@ -191,7 +191,7 @@ public class Util {
 		*/
 		if(best != null)
 		{
-			log.error("Move: " +best.getM()+ " value: " + best.getVal());
+			//log.error("Move: " +best.getM()+ " value: " + best.getVal());
 			return best.getM();
 		}
 		return null;
