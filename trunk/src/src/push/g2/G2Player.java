@@ -24,6 +24,7 @@ public class G2Player extends Player{
 	
 	ArrayList<Opponent> opponents;
 	
+	int curRound = 0;
 	int[][] board; //first set of arrays=9, second set of arrays=17
 	int[][] prevBoard;
 	Direction myCorner;
@@ -31,19 +32,19 @@ public class G2Player extends Player{
 	
 	public String getName()
 	{
-		return "G2Player";
+		return "Push-a-Maniac";
 	}
 	
 	// changes the current board state for G2 and the opponent objects
 	public void updateBoardState(int[][] _board)
 	{
-		prevBoard = this.board;
-		this.board = Util.cloneBoard(_board);
-		board = _board;
+		prevBoard = Util.cloneBoard(board);
+		board = Util.cloneBoard(_board);
+		//board = _board;
 		
 		for(Opponent o : opponents)
 		{
-			o.prevBoard = prevBoard;
+			o.prevBoard = Util.cloneBoard(prevBoard);
 			o.board = Util.cloneBoard(board);
 			o.score = Util.getCurrentScore(o.oppCorner, board);
 		}
@@ -65,14 +66,18 @@ public class G2Player extends Player{
 		}
 		this.id=id;
 		myCorner=playerPositions.get(id);
+		curRound = 0;
 	}
 
 	public Move makeMove(List<MoveResult> previousMoves)
 	{
+		log.error("\nCURRENT ROUND: " + curRound);
+		curRound++;
+		
 		int i = 0;
 		for(MoveResult mr : previousMoves)
 		{
-			log.debug(mr.getPlayerId()+" : " + mr.getMove() +" : "+mr.isSuccess());
+			//log.debug(mr.getPlayerId()+" : " + mr.getMove() +" : "+mr.isSuccess());
 			i++;
 		}
 		try
@@ -94,7 +99,7 @@ public class G2Player extends Player{
 						Opponent op = opponents.get(x);
 						op.addToValueHistory(Util.worthOfAMove(board, myCorner, m));
 						int attemptedAffects = Util.affectsPlayerScore(myCorner, mr.getMove(), prevBoard);
-						log.debug(mr.getPlayerId() + " tried to affect by " + attemptedAffects);
+						//log.error(mr.getPlayerId() + " tried to affect by " + attemptedAffects);
 						op.addToAmountHelpedHistory(attemptedAffects);
 						op.updateOwedDebt(m);
 						break;
@@ -107,7 +112,7 @@ public class G2Player extends Player{
 			
 			for(Opponent o : opponents)
 			{
-				log.debug(o.oppId + " total helped: " + o.totalAmountHelped);
+				//log.error(o.oppId + " total helped: " + o.totalAmountHelped);
 			}
 			
 			boolean reversed = false;
@@ -119,18 +124,18 @@ public class G2Player extends Player{
 				Move ourMove = Util.getBestMove(board, o, myCorner, false); 
 				if(ourMove != null)
 				{
-					log.debug("MOVE for " + o.oppId + ": " + 
-							ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
+					//log.error("MOVE for " + o.oppId + ": " + 
+							//ourMove.getX() + "," + ourMove.getY() + ": " + ourMove.getDirection());
 					return ourMove;
 				}
 			}
 			
 			//if there are no moves that help people and DON'T hurt us, then we must hurt ourselves
-			log.error("HURTFUL MOVE");
+			//log.error("HURTFUL MOVE");
 			Move hurtSelf = Util.hurtSelfLeast(board, myCorner);
 			if(hurtSelf != null)
 			{
-				log.error("HURTFULMOVE: " +  hurtSelf);
+				//log.error("HURTFULMOVE: " +  hurtSelf);
 				return hurtSelf;
 			}
 			
@@ -148,7 +153,7 @@ public class G2Player extends Player{
 			
 			//this is called only if the only moves we can make will hurt us
 			// THIS IS A LAST RESORT
-			log.error("Last RESORT");
+			//log.error("Last RESORT");
 			return new Move(0,0,Direction.NE);
 		}
 		catch(Exception e)
