@@ -107,7 +107,7 @@ public class Util {
 					}
 					else
 					{
-						log.error("INVALID: " + m);
+						//log.error("INVALID: " + m);
 						//log.debug("INVALID: " + m.getX() + "," + m.getY() + ": " + m.getDirection());
 					}
 				}	
@@ -119,7 +119,7 @@ public class Util {
 		log.error("Possible moves : " + moves.size());
 		for(Moves mvs : moves)
 		{
-			log.error(mvs.getM());
+			//log.error(mvs.getM());
 		}
 		return getBest(moves, op.totalValue);
 	}
@@ -356,25 +356,27 @@ public class Util {
 	
 	public static int[][] cloneBoard(int[][] board)
 	{
+		//check if board is null
 		if(board == null)
 		{
 			int[][] newBoard = new int[9][17];
-			for(int x=0; x< newBoard.length; x++)
+			for(int y=0; y< newBoard.length; y++)
 			{
-				for(int y=0; y<newBoard.length; y++)
+				for(int x=0; x<newBoard[0].length; x++)
 				{
-					newBoard[x][y] = 0;
+					newBoard[y][x] = 0;
 				}
 			}
 			return newBoard;
 		}
-		int[][] newBoard = new int[board.length][board[0].length];
 		
-		for(int x=0; x<board.length; x++)
+		//otherwise, copy over the old values
+		int[][] newBoard = new int[board.length][board[0].length];
+		for(int y=0; y<board.length; y++)
 		{
-			for(int y=0; y<board.length; y++)
+			for(int x=0; x<board[0].length; x++)
 			{
-				newBoard[x][y] = board[x][y];
+				newBoard[y][x] = board[y][x];
 			}
 		}
 		
