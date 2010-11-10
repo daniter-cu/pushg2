@@ -29,6 +29,7 @@ public class G2Player extends Player{
 	int[][] prevBoard;
 	Direction myCorner;
 	int id;
+	int numRounds = 0;
 	
 	public String getName()
 	{
@@ -59,6 +60,7 @@ public class G2Player extends Player{
 		curRound = -1;
 		prevBoard = Util.makeNewBoard();
 		board = Util.makeNewBoard();
+		numRounds = m;
 		
 		//create the list of opponents
 		opponents = new ArrayList<Opponent>();
@@ -68,7 +70,8 @@ public class G2Player extends Player{
 			{
 				opponents.add(new Opponent(oppCount, 
 						myCorner, 
-						playerPositions.get(oppCount)));
+						playerPositions.get(oppCount),
+						numRounds));
 			}
 		}
 	}
@@ -100,11 +103,12 @@ public class G2Player extends Player{
 					{
 						Move m = mr.getMove();
 						Opponent op = opponents.get(x);
-						op.addToWorthHistory(Util.worthOfAMove(board, myCorner, m));
-						op.addToAmountHelpedHistory(Util.affectsPlayerScore(myCorner, mr.getMove(), prevBoard));
+						op.addToWorthHistory(Util.worthOfAMove(board, op.oppCorner, m));
+						op.addToAmountHelpedHistory(Util.affectsPlayerScore(myCorner, m, prevBoard));
 						op.addToPotentialHistory(mr.getMove());
 						op.updateOwedDebt(m);
 						op.updateRanking();
+						op.updateMemoryLookback();
 						break;
 					}
 				}
@@ -123,7 +127,7 @@ public class G2Player extends Player{
 			
 			for(Opponent o : opponents)
 			{
-				log.error(o.oppId + " ranking: " + o.ranking);
+				log.error(o.oppId + " ranking: " + o.ranking + " (mem " + o.historicalMemory + ")");
 			}
 			boolean reversed = false;
 			
