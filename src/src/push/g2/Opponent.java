@@ -13,7 +13,11 @@ import push.sim.Player.Direction;
 
 public class Opponent implements Comparable<Opponent>
 {
-	public static final int HISTORY_MEMORY = 10;
+	public static final int HISTORY_MEMORY = 7;
+	public static final int HISTORY_MEM_MIN = 4;
+	public static final int HISTORY_MEM_MAX = 10;
+
+	public static final int END_GAME_ROUND_START = 10;
 	
 	public static final double WORTH_PERCENTAGE = 0.3;
 	public static final double POTENTIAL_HELPED_PERCENTAGE = 0.3;
@@ -27,10 +31,16 @@ public class Opponent implements Comparable<Opponent>
 	public Direction g2Corner;
 	public Direction oppCorner;
 	
+	public int numRounds = 0;
+	public int curRound = 0;
+	
 	public LinkedList<Double> valHistory;
 	public LinkedList<Double> potentialHistory;
 	public LinkedList<Integer> helpedHistory;
 	
+	public int historicalMemory = 7; //how far to look back?
+	
+	// the players OVERALL RANKING (a weighted avg)
 	public double ranking = 0.0;
 	
 	// amount that we need to "repay" the opponent
@@ -49,13 +59,15 @@ public class Opponent implements Comparable<Opponent>
 	// this is the amount helped over time
 	public double totalAmountHelped = 0.0;
 	
-	public Opponent(int idNum, Direction g2Corner, Direction opposingCorner)
+	public Opponent(int idNum, Direction g2Corner, Direction opposingCorner, int numRds)
 	{
 		this.g2Corner = g2Corner;
 		oppId = idNum;
 		oppCorner = opposingCorner;
 		prevBoard = Util.makeNewBoard();
 		board = Util.makeNewBoard();
+		numRounds = numRds;
+		historicalMemory = 7;
 		
 		valHistory = new LinkedList<Double>();
 		potentialHistory = new LinkedList<Double>();
@@ -79,9 +91,23 @@ public class Opponent implements Comparable<Opponent>
 			ranking = ranking * -1.0;
 	}
 	
+	public void updateMemoryLookback()
+	{
+		curRound++;
+		
+		if(ranking < 0.01 && historicalMemory-1 > HISTORY_MEM_MIN)
+			historicalMemory--;
+		else if(ranking > .01 && historicalMemory+1 < HISTORY_MEM_MAX)
+			historicalMemory++;
+		
+		//if it's almost the end of the game, execute end-game strategy
+		if(numRounds - curRound <= END_GAME_ROUND_START)
+			historicalMemory = 3;
+	}
+	
 	public void addToAmountHelpedHistory(int amountHelped)
 	{
-		if(helpedHistory.size() == HISTORY_MEMORY)
+		while(helpedHistory.size() >= historicalMemory)
 		{
 			helpedHistory.remove();
 		}
@@ -94,7 +120,7 @@ public class Opponent implements Comparable<Opponent>
 	// adds the player's most recent move to the historical stack
 	public void addToWorthHistory(double val)
 	{
-		if(valHistory.size() == HISTORY_MEMORY)
+		while(valHistory.size() >= historicalMemory)
 		{
 			valHistory.remove();
 		}
@@ -167,7 +193,7 @@ public class Opponent implements Comparable<Opponent>
 		else if(potentialAffected==0 && possibleAffected>0)
 			potentialAffected = -.01;
 			
-		if(potentialHistory.size() == HISTORY_MEMORY)
+		while(potentialHistory.size() >= historicalMemory)
 		{
 			potentialHistory.remove();
 		}
@@ -215,7 +241,7 @@ public class Opponent implements Comparable<Opponent>
 		}
 		
 		double avg = avgVal/denominator;
-		if(Double.isNaN(avg))
+		if(Double.isNaN(avg) || Double.isInfinite(avg))
 		{
 			return 0;
 		}
