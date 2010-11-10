@@ -121,7 +121,7 @@ public class Util {
 		{
 			//log.error(mvs.getM());
 		}
-		return getBest(moves, op.totalValue);
+		return getBest(moves, op.totalWorthValue);
 	}
 	
 	private static Move getBest(ArrayList<Moves> moves, double gold) 
@@ -383,11 +383,38 @@ public class Util {
 		return newBoard;
 	}
 	
-	private static boolean isValid(Move m, int[][] board, Direction myCorner)
+	public static boolean isValid(Move m, int[][] board, Direction myCorner)
 	{
 		return isSuccessByBoundsEtc(m, myCorner)
 			&& isSuccessByCount(m, board)
 			&& GameEngine.isValidDirectionForCellAndHome(m.getDirection(), myCorner);
+	}
+	
+	/**
+	 * Returns a brand new board, each valid cell has 1 coin.
+	 */
+	public static int[][] makeNewBoard()
+	{
+		int[][] tempBoard = new int[9][17];
+		
+		for(int i=0;i<9;i++)
+			for(int j=0;j<17;j++)
+				tempBoard[i][j]=0;
+		
+		for(int j=0;j<9;j++)
+		{
+			int length = j;
+			if (length > 4)
+				length = 8 - length;
+			int offset = 4 - length;
+			length += 5;
+			for(int i=0;i<length;i++)
+			{
+				tempBoard[j][offset+i*2]=1;
+			}
+		}
+		
+		return tempBoard;
 	}
 	
 	private static boolean isSuccessByBoundsEtc(Move m, Direction home) {

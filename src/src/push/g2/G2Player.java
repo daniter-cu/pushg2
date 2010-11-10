@@ -53,6 +53,13 @@ public class G2Player extends Player{
 	// initializes the new board game settings
 	public void startNewGame(int id, int m, ArrayList<Direction> playerPositions) 
 	{
+		//set up our own values
+		this.id=id;
+		myCorner=playerPositions.get(id);
+		curRound = -1;
+		prevBoard = Util.makeNewBoard();
+		board = Util.makeNewBoard();
+		
 		//create the list of opponents
 		opponents = new ArrayList<Opponent>();
 		for(int oppCount=0; oppCount<6; oppCount++)
@@ -60,13 +67,10 @@ public class G2Player extends Player{
 			if(oppCount != id)
 			{
 				opponents.add(new Opponent(oppCount, 
-						playerPositions.get(oppCount), 
+						myCorner, 
 						playerPositions.get(oppCount)));
 			}
 		}
-		this.id=id;
-		myCorner=playerPositions.get(id);
-		curRound = -1;
 	}
 
 	public Move makeMove(List<MoveResult> previousMoves)
@@ -96,11 +100,11 @@ public class G2Player extends Player{
 					{
 						Move m = mr.getMove();
 						Opponent op = opponents.get(x);
-						op.addToValueHistory(Util.worthOfAMove(board, myCorner, m));
-						int attemptedAffects = Util.affectsPlayerScore(myCorner, mr.getMove(), prevBoard);
-						//log.error(mr.getPlayerId() + " tried to affect by " + attemptedAffects);
-						op.addToAmountHelpedHistory(attemptedAffects);
+						op.addToWorthHistory(Util.worthOfAMove(board, myCorner, m));
+						op.addToAmountHelpedHistory(Util.affectsPlayerScore(myCorner, mr.getMove(), prevBoard));
+						op.addToPotentialHistory(mr.getMove());
 						op.updateOwedDebt(m);
+						op.updateRanking();
 						break;
 					}
 				}
@@ -109,11 +113,18 @@ public class G2Player extends Player{
 			Collections.sort(opponents); //sorts in ascending order, but we want the most useful one
 			Collections.reverse(opponents);
 			
+			log.error("\n-----------------------------------------------------ROUND " + curRound);
 			for(Opponent o : opponents)
 			{
-				//log.error(o.oppId + " total helped: " + o.totalAmountHelped);
+				log.error(o.oppId + " worth: " + o.totalWorthValue);
+				log.error(o.oppId + " helped: " + o.totalAmountHelped);
+				log.error(o.oppId + " potential: " + o.totalPotentialHelped);
 			}
 			
+			for(Opponent o : opponents)
+			{
+				log.error(o.oppId + " ranking: " + o.ranking);
+			}
 			boolean reversed = false;
 			
 			//return the best move

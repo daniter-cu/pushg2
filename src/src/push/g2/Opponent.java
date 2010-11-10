@@ -15,6 +15,10 @@ public class Opponent implements Comparable<Opponent>
 {
 	public static final int HISTORY_MEMORY = 10;
 	
+	public static final double WORTH_PERCENTAGE = 0.3;
+	public static final double POTENTIAL_HELPED_PERCENTAGE = 0.3;
+	public static final double AMOUNT_HELPED_PERCENTAGE = 0.4;
+	
 	public int oppId = 0;
 	public int score = 16; //every player starts with 16 points
 	
@@ -27,14 +31,16 @@ public class Opponent implements Comparable<Opponent>
 	public LinkedList<Double> potentialHistory;
 	public LinkedList<Integer> helpedHistory;
 	
-	// negative value = defect opponent
-	// 0 = neutral opponent
-	// positive value = cooperative opponent
-	public double totalValue = 0.0;
+	public double ranking = 0.0;
 	
 	// amount that we need to "repay" the opponent
 	// positive means we should pay them back
 	public double owedDebt = 0.0;
+	
+	// negative value = defect opponent
+	// 0 = neutral opponent
+	// positive value = cooperative opponent
+	public double totalWorthValue = 0.0;
 	
 	// potential that they could have helped us, averaged over previous rounds
 	// vs. the amount that they actually helped us
@@ -43,15 +49,34 @@ public class Opponent implements Comparable<Opponent>
 	// this is the amount helped over time
 	public double totalAmountHelped = 0.0;
 	
-	public Opponent(int idNum, Direction myCorner, Direction opposingCorner)
+	public Opponent(int idNum, Direction g2Corner, Direction opposingCorner)
 	{
-		g2Corner = myCorner;
+		this.g2Corner = g2Corner;
 		oppId = idNum;
 		oppCorner = opposingCorner;
+		prevBoard = Util.makeNewBoard();
+		board = Util.makeNewBoard();
 		
 		valHistory = new LinkedList<Double>();
 		potentialHistory = new LinkedList<Double>();
 		helpedHistory = new LinkedList<Integer>();
+	}
+	
+	/**
+	 * Updates the total ranking of the player based on weighted averages
+	 * of the worth, potential helped, and amount helped
+	 */
+	public void updateRanking()
+	{
+		ranking = WORTH_PERCENTAGE * totalWorthValue + 
+			POTENTIAL_HELPED_PERCENTAGE * totalPotentialHelped +
+			AMOUNT_HELPED_PERCENTAGE * totalAmountHelped;
+		
+		//if the player is net positive or negative, change the ranking to positive or negative
+		if(totalAmountHelped < 0 && ranking > 0)
+			ranking = ranking * -1.0;
+		else if(totalAmountHelped > 0 && ranking < 0)
+			ranking = ranking * -1.0;
 	}
 	
 	public void addToAmountHelpedHistory(int amountHelped)
@@ -67,7 +92,7 @@ public class Opponent implements Comparable<Opponent>
 	}
 	
 	// adds the player's most recent move to the historical stack
-	public void addToValueHistory(double val)
+	public void addToWorthHistory(double val)
 	{
 		if(valHistory.size() == HISTORY_MEMORY)
 		{
@@ -76,7 +101,7 @@ public class Opponent implements Comparable<Opponent>
 		
 		valHistory.addLast(val);
 		
-		totalValue = updateHistoricalValAverage();
+		totalWorthValue = updateHistoricalValAverage();
 	}
 	
 	public void addToPotentialHistory(Move m)
@@ -89,11 +114,9 @@ public class Opponent implements Comparable<Opponent>
 		
 		//determine how much the opponent affected us
 		double amountAffectedG2 = (double)Util.affectsPlayerScore(g2Corner, m, prevBoard);
-		int possibleAffected = 0;
-		if(amountAffectedG2 > 0)
-			possibleAffected = Integer.MIN_VALUE;
-		else
-			possibleAffected = Integer.MAX_VALUE;
+		double possibleAffected = amountAffectedG2;
+		
+		boolean canBeHelped = false;
 		
 		//iterate through all the possible moves
 		for(int i = 0; i < prevBoard.length; i++)
@@ -105,13 +128,26 @@ public class Opponent implements Comparable<Opponent>
 				
 				for(Direction d : dirs)
 				{
-					//if the player had the ability to help/hurt us more than he actually did, keep track of it
-					int tempAffected = Util.affectsPlayerScore(g2Corner, m, prevBoard);
+					Move tempMove = new Move(j, i, d);
 					
-					if(amountAffectedG2 > 0 && tempAffected > amountAffectedG2)
-						possibleAffected = tempAffected;
-					else if(amountAffectedG2 < 0 && tempAffected < amountAffectedG2)
-						possibleAffected = tempAffected;
+					//check that the move is valid
+					if(Util.isValid(tempMove, prevBoard, oppCorner))
+					{
+						//if the player had the ability to help/hurt us more than he actually did, keep track of it
+						int tempAffected = Util.affectsPlayerScore(g2Corner, tempMove, prevBoard);
+						
+						if(amountAffectedG2 >= 0 && tempAffected >= possibleAffected)
+							possibleAffected = (double)tempAffected;
+						else if(amountAffectedG2 < 0 && tempAffected <= possibleAffected)
+							possibleAffected = (double)tempAffected;
+						
+//						if(amountAffectedG2 == 0 && tempAffected > possibleAffected)
+//							possibleAffected = (double)tempAffected;
+						
+						//flag to check that g2 player could have even been helped in this round
+						if(tempAffected > 0)
+							canBeHelped = true;
+					}
 				}
 			}
 		}
@@ -119,10 +155,25 @@ public class Opponent implements Comparable<Opponent>
 		//calculate the actual divided by possible to get the potential affected
 		double potentialAffected = amountAffectedG2 / (double)possibleAffected; 
 		
+		//check that the opponent helped us, potential is positive (and vice versa)
+		if(amountAffectedG2>0 && potentialAffected<0)
+			potentialAffected *= -1.0;
+		else if(amountAffectedG2<0 && potentialAffected>0)
+			potentialAffected *= -1.0;
+		
+		//check that amountAffected is 0, but opponent could have helped us
+		if(potentialAffected==0 && possibleAffected<=0)
+			potentialAffected = .01;
+		else if(potentialAffected==0 && possibleAffected>0)
+			potentialAffected = -.01;
+			
 		if(potentialHistory.size() == HISTORY_MEMORY)
 		{
 			potentialHistory.remove();
 		}
+		
+		//if they hurt us, we still want to know that they hurt us (by making it negative)
+		potentialAffected = (amountAffectedG2 > 0) ? potentialAffected : potentialAffected*-1.0;
 		
 		potentialHistory.addLast(potentialAffected);
 		totalPotentialHelped = updateHistoricalPotentialAverage();
@@ -158,9 +209,15 @@ public class Opponent implements Comparable<Opponent>
 		
 		for(Double val : potentialHistory)
 		{
+			count += 1.0;
 			avgVal += count * val;
 			denominator += count;
-			count += 1.0;
+		}
+		
+		double avg = avgVal/denominator;
+		if(Double.isNaN(avg))
+		{
+			return 0;
 		}
 		
 		return avgVal/denominator;
@@ -185,9 +242,9 @@ public class Opponent implements Comparable<Opponent>
 	
 	@Override
 	public int compareTo(Opponent opp2) {
-		if(this.totalAmountHelped > opp2.totalAmountHelped)
+		if(this.ranking > opp2.ranking)
 			return 1;
-		if(totalAmountHelped >this.totalAmountHelped)
+		if(ranking >this.ranking)
 			return -1;
 		return 0;
 	}
