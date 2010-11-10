@@ -64,14 +64,14 @@ public class Util {
 			}
 		}
 		if(best != null){
-			log.error("hurtful move: " + best.getM());
+			log.debug("hurtful move: " + best.getM());
 			return best.getM();
 		}
 		else
 			return null;
 	}
 
-	public static Move getBestMove(int[][] board, Opponent op, Direction home, boolean ignoreSelfHurt)
+	public static Move getBestMove(int[][] board, Opponent op, Direction home, boolean ignoreSelfHurt, double hurt)
 	{
 		//find all valid moves for this player
 		ArrayList<Moves> moves = new ArrayList<Moves>();
@@ -97,16 +97,18 @@ public class Util {
 					{
 						// if we don't care about hurting ourselves, every move is valid
 						if(ignoreSelfHurt)
-							moves.add(new Moves(m,worthOfAMove(board,op.oppCorner,m)));
+							moves.add(new Moves(m,hurt*worthOfAMove(board,op.oppCorner,m)));
 						// if we don't want to hurt ourselves, only add moves that don't hurt us
 						else if(affectsPlayerScore(home, m, board) >= 0)
-							moves.add(new Moves(m,worthOfAMove(board,op.oppCorner,m)));
+							moves.add(new Moves(m,hurt*worthOfAMove(board,op.oppCorner,m)));
 						
 						//log.debug("VALID: " + m.getX() + "," + m.getY() + ": " + m.getDirection());
 						//moves.add(new Moves(m,worthOfAMove(board,op.oppCorner,m)));
 					}
 					else
 					{
+
+						log.debug("INVALID: " + m);
 						//log.error("INVALID: " + m);
 						//log.debug("INVALID: " + m.getX() + "," + m.getY() + ": " + m.getDirection());
 					}
@@ -117,26 +119,14 @@ public class Util {
 		//sort list
 		//log.debug("Play to go after = " + op.oppId);
 		//log.error("Possible moves : " + moves.size());
-		for(Moves mvs : moves)
-		{
-			//log.error(mvs.getM());
-		}
 		return getBest(moves, op.totalWorthValue);
 	}
 	
 	private static Move getBest(ArrayList<Moves> moves, double gold) 
 	{
+		
 		Moves best = null;
-		double val = -999999;
-		for(Moves m: moves)
-		{
-			if(m.getVal() > val)
-			{
-				val = m.getVal();
-				best = m;
-			}
-		}
-		/*
+		double val = -999999;		
 		for(Moves m: moves)
 		{
 			if(m.getVal() >= 1)
@@ -188,93 +178,38 @@ public class Util {
 				}
 			}
 		}
-		*/
 		if(best != null)
 		{
-			//log.error("Move: " +best.getM()+ " value: " + best.getVal());
+			//	log.error("Move: " +best.getM()+ " value: " + best.getVal());
 			return best.getM();
 		}
 		return null;
-		
-		/*
-		Moves best = null;
-		double minDist = Integer.MAX_VALUE;
-		for(Moves m : moves)
-		{
-			//if(m.getVal()*gold < 0)
-			//	continue;
-			if(Math.abs(m.getVal() - gold) < minDist)
-			{
-				minDist = Math.abs(m.getVal() - gold);
-				best = m;
-			}
-		}
-		
-		
-		if(best != null)
-		{
-		//	log.debug("value of best move " + best.getVal());
-			return best.getM();
-		}
-		
-		return null;*/
-		/*
-		Moves best = null;
-		double minDist = 0;
-		if(gold > 0)
-			minDist = -1000;
-		else
-			minDist = 1000;
-		for(Moves m : moves)
-		{
-			log.debug(m.getVal());
-			if(gold > 0)
-			{
-				if(m.getVal() > minDist)
-				{
-					minDist = m.getVal();
-					best = m;
-				}
-			}
-			else
-			{
-				if(m.getVal() < minDist)
-				{
-					minDist = m.getVal();
-					best = m;
-				}
-			}
-		}
-		
-		
-		if(best != null)
-		{
-			log.debug("value of best move " + best.getVal());
-			return best.getM();
-		}
-		
-		return null;
-		*/
 	}
 
 	//calculates the worth of any move made in the previous round for G2Player
-	public static double worthOfAMove(int[][]board, Direction g2Corner, Move m)
+	public static double worthOfAMove(int[][]board, Direction opCorner, Move m)
     {
-		return affectsPlayerScore(g2Corner,m,board);
-		
+		//log.error("Testing Move : " + m);
+		double score = affectsPlayerScore(opCorner,m,board);
+		if(score != 0)
+		{
+			//log.error(score);
+			return score;
+		}
 		//double points = affectsPlayerScore(g2Corner, m, board); 
 		
-			/*
-			double worth=0.0;
-	        double oldDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getX(),m.getY()));
-	        double newDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getNewX(),m.getNewY()));
-	        double coins= board[m.getNewY()][m.getNewX()];
-	        if(newDistance == 0)
-	        	newDistance = 0.1;
-	        worth = 100*(coins)*((oldDistance-newDistance)/((newDistance+oldDistance)/2));
-	        return 1.0/worth;
-	        */
 		
+		double worth=0.0;
+        double oldDistance=GameEngine.getDistance(opCorner.getHome(), new Point(m.getX(),m.getY()));
+        double newDistance=GameEngine.getDistance(opCorner.getHome(), new Point(m.getNewX(),m.getNewY()));
+        double coins= board[m.getY()][m.getX()];
+        if(oldDistance-newDistance == 0 )
+        	return 0.01;
+        worth = 100.0*(coins)*((oldDistance-newDistance)/((newDistance+oldDistance)/2.0));
+        return 1.0/worth;
+	       
+		
+        
 		/*
         double worth=0.0;
         double oldDistance=GameEngine.getDistance(g2Corner.getHome(), new Point(m.getX(),m.getY()));
