@@ -89,8 +89,13 @@ public class G2Player extends Player{
 		numStacks = Util.numStacks(board);
 		
 		//determine if it's time to start the end game strategy
-		if(numRounds - curRound <= END_GAME_START && !isEndGame)
+		if(((numRounds - curRound <= END_GAME_START) || (Util.numStacks(board) <= 6) ||
+				(Util.closestStack(board, myCorner) >= 7))  && !isEndGame)
+		{
 			isEndGame = true;
+			for(Opponent opt : opponents)
+				opt.isEndGame = true;
+		}
 		
 		int i = 0;
 		for(MoveResult mr : previousMoves)
@@ -103,7 +108,16 @@ public class G2Player extends Player{
 			// add every opponent's move to their respective history
 			if(previousMoves.isEmpty())
 			{
-				return new Move(8, 4, myCorner.getOpposite());
+				int pRight = id-2;
+				pRight = pRight >= 0 ? pRight : pRight+5;
+				int pLeft = id+2;
+				pLeft = pLeft <= 5 ? pLeft : pLeft-5; 
+				
+				for(Opponent opt : opponents)
+				{
+					if(opt.oppId == pRight || opt.oppId == pLeft)
+						opt.ranking += .01;
+				}
 			}
 			
 			// it's not the first move
@@ -128,7 +142,7 @@ public class G2Player extends Player{
 			
 			Collections.sort(opponents); //sorts in ascending order, but we want the most useful one
 			Collections.reverse(opponents);
-			log.error("\n-----------------------------------------------------ROUND " + curRound);
+//			log.error("\n-----------------------------------------------------ROUND " + curRound);
 			
 			//SWAP to affect other people
 			boolean swapped = false;
@@ -144,13 +158,10 @@ public class G2Player extends Player{
 					percentOfOriginal = 50.0;
 				
 				//determine which of the two players to help based on a weighted average of who's helped more
-				log.error("weighted avg: " + weightedAvg);
-				log.error("percentage 1 vs 2: " + percentOfOriginal);
 				if((Math.random()*100) < percentOfOriginal/2.0)
 				{
 					Collections.swap(opponents, 0, 1);
 					swapped = true;
-					log.error("SWAPPING 1 and 2");
 				}
 			}
 			
@@ -158,28 +169,50 @@ public class G2Player extends Player{
 			 * Execute the end-game strategy!
 			 */
 			if(isEndGame)
-			{
-				//it's the last round, omfg!
-				if(curRound == numRounds-1)
+			{	
+				//it's the last 2 rounds, kill everybody mode, omfg!
+				if(curRound >= numRounds-2)
 				{
-					log.error("it's the last round");
 					Move lastRound = Util.increaseOurScore(board, myCorner);
 					//help ourselves if possible
 					if(lastRound != null)
+					{
 						return lastRound;
+					}
 					//hurt the player with the 2nd highest score
 					else if((lastRound = Util.hurt2ndBest(board, opponents, myCorner)) != null)
+					{
 						return lastRound;
+					}
 					//hurt ourselves the least as a last resort
 					else if((lastRound = Util.hurtSelfLeast(board, myCorner)) != null)
+					{
 						return lastRound;
+					}
 					
 					//we have no moves, so just return anything
 					return new Move(4,8, myCorner.getOpposite());
 				}
 				
-				//end-game strategy
-				
+//				//if coins are too far away to ever get to us, sabotage forever!
+//				if(Util.closestStack(board, myCorner) > numRounds-curRound &&
+//						Util.closestStack(board, myCorner)>3 )
+//				{
+//					log.error("stacks are too far, sabotage opponents");
+//					return Util.hurt2ndBest(board, opponents, myCorner);
+//				}
+//				
+//				//if we can increase our score, do it
+//				Move nextMove = Util.increaseOurScore(board, myCorner);
+//				if(nextMove != null)
+//					return nextMove;
+//
+//				//if we have to decrease our score, do it
+//				if((nextMove = Util.hurtSelfLeast(board, myCorner)) != null)
+//					return nextMove;
+//				
+//				//we have no moves, so just return anything
+//				return new Move(4,8, myCorner.getOpposite());
 			}
 			
 			/**
@@ -222,10 +255,10 @@ public class G2Player extends Player{
 //				log.error(o.oppId + " potential: " + o.totalPotentialHelped);
 //			}
 			
-			for(Opponent o : opponents)
-			{
-				log.error(o.oppId + " ranking: " + o.ranking + " (mem " + o.historicalMemory + ")");
-			}
+//			for(Opponent o : opponents)
+//			{
+//				log.error(o.oppId + " ranking: " + o.ranking + " (mem " + o.historicalMemory + ")");
+//			}
 			
 			//return the best move
 			for(Opponent o : opponents)
