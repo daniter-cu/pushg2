@@ -89,6 +89,8 @@ public class Opponent implements Comparable<Opponent>
 			ranking = ranking * -1.0;
 		else if(totalAmountHelped > 0 && ranking < 0)
 			ranking = ranking * -1.0;
+		
+		score = Util.getCurrentScore(oppCorner, board);
 	}
 	
 	public void updateMemoryLookback()
