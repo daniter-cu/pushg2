@@ -33,6 +33,7 @@ public class G2Player extends Player{
 	Direction myCorner;
 	int id;
 	int numRounds = 0;
+	int numStacks = 0;
 	
 	boolean isEndGame = false;
 	
@@ -66,6 +67,7 @@ public class G2Player extends Player{
 		prevBoard = Util.makeNewBoard();
 		board = Util.makeNewBoard();
 		numRounds = m;
+		numStacks = 61;
 		
 		//create the list of opponents
 		opponents = new ArrayList<Opponent>();
@@ -84,9 +86,10 @@ public class G2Player extends Player{
 	public Move makeMove(List<MoveResult> previousMoves)
 	{
 		curRound++;
+		numStacks = Util.numStacks(board);
 		
 		//determine if it's time to start the end game strategy
-		if(numRounds - curRound <= END_GAME_START)
+		if(numRounds - curRound <= END_GAME_START && !isEndGame)
 			isEndGame = true;
 		
 		int i = 0;
@@ -131,9 +134,6 @@ public class G2Player extends Player{
 			boolean swapped = false;
 			if(opponents.get(0).ranking>0 && opponents.get(1).ranking>0)
 			{
-//				double difference = opponents.get(0).ranking - opponents.get(1).ranking;
-//				double percentOfOriginal = (difference / opponents.get(0).ranking) * 100.0;
-				
 				//double percentOfOriginal = opponents.get(1).ranking / opponents.get(0).ranking / 2.0;
 				double weightedAvg = (Math.pow(opponents.get(0).ranking, 2) + Math.pow(opponents.get(1).ranking, 2)) / 
 					(opponents.get(1).ranking + opponents.get(0).ranking);
@@ -154,6 +154,37 @@ public class G2Player extends Player{
 				}
 			}
 			
+			/**
+			 * Execute the end-game strategy!
+			 */
+			if(isEndGame)
+			{
+				//it's the last round, omfg!
+				if(curRound == numRounds-1)
+				{
+					log.error("it's the last round");
+					Move lastRound = Util.increaseOurScore(board, myCorner);
+					//help ourselves if possible
+					if(lastRound != null)
+						return lastRound;
+					//hurt the player with the 2nd highest score
+					else if((lastRound = Util.hurt2ndBest(board, opponents, myCorner)) != null)
+						return lastRound;
+					//hurt ourselves the least as a last resort
+					else if((lastRound = Util.hurtSelfLeast(board, myCorner)) != null)
+						return lastRound;
+					
+					//we have no moves, so just return anything
+					return new Move(4,8, myCorner.getOpposite());
+				}
+				
+				//end-game strategy
+				
+			}
+			
+			/**
+			 * Execute the normal-game strategy!
+			 */
 			//10% of the time, hurt somebody instead
 			if(Math.random()*100 < 10 && !swapped)
 			{
@@ -161,7 +192,7 @@ public class G2Player extends Player{
 				if(Math.random()*2 == 0)
 				{
 					Collections.swap(opponents, 0, 4);
-//					log.error("SWAPPING 1 and 5");
+					//log.error("SWAPPING 1 and 5");
 				}
 				//randomly hurt the player with the highest score
 				else
