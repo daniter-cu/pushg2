@@ -13,15 +13,15 @@ import push.sim.Player.Direction;
 
 public class Opponent implements Comparable<Opponent>
 {
-	public static final int HISTORY_MEMORY = 7;
-	public static final int HISTORY_MEM_MIN = 4;
-	public static final int HISTORY_MEM_MAX = 10;
+	public int HISTORY_MEMORY = 7;
+	public int HISTORY_MEM_MIN = 4;
+	public int HISTORY_MEM_MAX = 10;
 
-	public static final int END_GAME_ROUND_START = 10;
+	public int END_GAME_ROUND_START = 8;
 	
-	public static final double WORTH_PERCENTAGE = 0.3;
-	public static final double POTENTIAL_HELPED_PERCENTAGE = 0.3;
-	public static final double AMOUNT_HELPED_PERCENTAGE = 0.4;
+	public double WORTH_PERCENTAGE = 0.3;
+	public double POTENTIAL_HELPED_PERCENTAGE = 0.3;
+	public double AMOUNT_HELPED_PERCENTAGE = 0.4;
 	
 	public int oppId = 0;
 	public int score = 16; //every player starts with 16 points
@@ -39,6 +39,7 @@ public class Opponent implements Comparable<Opponent>
 	public LinkedList<Integer> helpedHistory;
 	
 	public int historicalMemory = 7; //how far to look back?
+	public boolean isEndGame = false;
 	
 	// the players OVERALL RANKING (a weighted avg)
 	public double ranking = 0.0;
@@ -103,7 +104,7 @@ public class Opponent implements Comparable<Opponent>
 			historicalMemory++;
 		
 		//if it's almost the end of the game, execute end-game strategy
-		if(numRounds - curRound <= END_GAME_ROUND_START)
+		if(numRounds - curRound <= END_GAME_ROUND_START || isEndGame)
 			historicalMemory = 3;
 	}
 	
