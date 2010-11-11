@@ -22,6 +22,9 @@ public class G2Player extends Player{
 	
 	private Logger log = Logger.getLogger(this.getClass());
 	
+	//start the end game strategy with this many rounds remaining:
+	public static int END_GAME_START = 8;
+	
 	ArrayList<Opponent> opponents;
 	
 	int curRound = -1;
@@ -30,6 +33,8 @@ public class G2Player extends Player{
 	Direction myCorner;
 	int id;
 	int numRounds = 0;
+	
+	boolean isEndGame = false;
 	
 	public String getName()
 	{
@@ -80,6 +85,10 @@ public class G2Player extends Player{
 	{
 		curRound++;
 		
+		//determine if it's time to start the end game strategy
+		if(numRounds - curRound <= END_GAME_START)
+			isEndGame = true;
+		
 		int i = 0;
 		for(MoveResult mr : previousMoves)
 		{
@@ -103,7 +112,7 @@ public class G2Player extends Player{
 					{
 						Move m = mr.getMove();
 						Opponent op = opponents.get(x);
-						op.addToWorthHistory(Util.worthOfAMove(board, op.oppCorner, m));
+						op.addToWorthHistory(Util.worthOfAMove(prevBoard, op.oppCorner, m));
 						op.addToAmountHelpedHistory(Util.affectsPlayerScore(myCorner, m, prevBoard));
 						op.addToPotentialHistory(mr.getMove());
 						op.updateOwedDebt(m);
@@ -116,26 +125,87 @@ public class G2Player extends Player{
 			
 			Collections.sort(opponents); //sorts in ascending order, but we want the most useful one
 			Collections.reverse(opponents);
-			
 			log.error("\n-----------------------------------------------------ROUND " + curRound);
-			for(Opponent o : opponents)
+			
+			//SWAP to affect other people
+			boolean swapped = false;
+			if(opponents.get(0).ranking>0 && opponents.get(1).ranking>0)
 			{
-				log.error(o.oppId + " worth: " + o.totalWorthValue);
-				log.error(o.oppId + " helped: " + o.totalAmountHelped);
-				log.error(o.oppId + " potential: " + o.totalPotentialHelped);
+//				double difference = opponents.get(0).ranking - opponents.get(1).ranking;
+//				double percentOfOriginal = (difference / opponents.get(0).ranking) * 100.0;
+				
+				//double percentOfOriginal = opponents.get(1).ranking / opponents.get(0).ranking / 2.0;
+				double weightedAvg = (Math.pow(opponents.get(0).ranking, 2) + Math.pow(opponents.get(1).ranking, 2)) / 
+					(opponents.get(1).ranking + opponents.get(0).ranking);
+				double percentOfOriginal = (opponents.get(0).ranking-weightedAvg) / 
+					(opponents.get(0).ranking-opponents.get(1).ranking) * 100.0;
+				
+				if(Double.isNaN(percentOfOriginal))
+					percentOfOriginal = 50.0;
+				
+				//determine which of the two players to help based on a weighted average of who's helped more
+				log.error("weighted avg: " + weightedAvg);
+				log.error("percentage 1 vs 2: " + percentOfOriginal);
+				if((Math.random()*100) < percentOfOriginal/2.0)
+				{
+					Collections.swap(opponents, 0, 1);
+					swapped = true;
+					log.error("SWAPPING 1 and 2");
+				}
 			}
+			
+			//10% of the time, hurt somebody instead
+			if(Math.random()*100 < 10 && !swapped)
+			{
+				//randomly hurt the player that hurt us the most
+				if(Math.random()*2 == 0)
+				{
+					Collections.swap(opponents, 0, 4);
+//					log.error("SWAPPING 1 and 5");
+				}
+				//randomly hurt the player with the highest score
+				else
+				{
+					int maxScore = 0;
+					int maxScoreId = 0;
+					int count = -1;
+					for(Opponent o : opponents)
+					{
+						count++;
+						if(o.score > maxScore)
+						{
+							maxScore = o.score;
+							maxScoreId = count;
+						}
+					}
+					Collections.swap(opponents, 0, maxScoreId);
+//					log.error("SWAPPING 1 and COUNT");
+				}
+			}
+			
+			
+//			for(Opponent o : opponents)
+//			{
+//				log.error(o.oppId + " worth: " + o.totalWorthValue);
+//				log.error(o.oppId + " helped: " + o.totalAmountHelped);
+//				log.error(o.oppId + " potential: " + o.totalPotentialHelped);
+//			}
 			
 			for(Opponent o : opponents)
 			{
 				log.error(o.oppId + " ranking: " + o.ranking + " (mem " + o.historicalMemory + ")");
 			}
-			boolean reversed = false;
 			
 			//return the best move
 			for(Opponent o : opponents)
 			{	
 				//tries to return a move that doesn't hurt us
-				Move ourMove = Util.getBestMove(board, o, myCorner, false); 
+				Move ourMove = null;
+				if(o.ranking>=0)
+					ourMove = Util.getBestMove(board, o, myCorner, false, 1);
+				else
+					ourMove = Util.getBestMove(board, o, myCorner, false, -1);
+				
 				if(ourMove != null)
 				{
 					//log.error("MOVE for " + o.oppId + ": " + 
@@ -185,7 +255,7 @@ public class G2Player extends Player{
 		return new Move(0,0, myCorner.getOpposite());
 	}
 	
-	public Move generateRandomMove(int depth)
+	/*public Move generateRandomMove(int depth)
 	{
 		log.debug("generating a rando");
 		if(depth > 300)
@@ -222,5 +292,5 @@ public class G2Player extends Player{
 		
 		Move m = new Move(n1, n2,d);
 		return m;
-	}
+	}*/
 }
