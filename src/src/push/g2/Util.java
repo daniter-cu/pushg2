@@ -425,13 +425,13 @@ public class Util {
 			{
 				best = o;
 				bestscore = getCurrentScore(o.oppCorner, board);
-				break;
+				continue;
 			}
 			if(second == null)
 			{
 				second = o;
 				secondscore = getCurrentScore(o.oppCorner, board);
-				break;
+				continue;
 			}
 			if((temp=getCurrentScore(o.oppCorner, board)) > bestscore)
 			{
@@ -439,7 +439,7 @@ public class Util {
 				second = best;
 				best = o;
 				bestscore = temp;
-				break;
+				continue;
 			}
 			if((temp=getCurrentScore(o.oppCorner, board)) > secondscore)
 			{
