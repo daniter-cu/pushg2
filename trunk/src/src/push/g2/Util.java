@@ -375,6 +375,81 @@ public class Util {
 		return true;
 	}
 	
+	public static Move increaseOurScore(int[][] board, Direction home)
+	{
+		ArrayList<Direction> dirs = new ArrayList<Direction>();
+		dirs.add(home.getLeft().getOpposite());
+		dirs.add(home.getOpposite());
+		dirs.add(home.getRight().getOpposite());
+		Move best = null;
+		Move m;
+		double help = 0;
+		double temp;
+		
+		//iterate through board
+		for(int i = 0; i < board.length; i++)
+		{
+			for(int j = 0; j < board[0].length; j++)
+			{
+				if(board[i][j] < 1)
+					continue;
+				
+				//check if move is valid
+				for(Direction d : dirs)
+				{
+					m = new Move(j,i,d);
+					if(isValid(m,board,home))
+					{
+						if(( temp=affectsPlayerScore(home, m, board)) > help)
+						{
+							best = m;
+							help = temp;
+						}
+					}
+				}	
+			}
+		}
+		return best;
+	}
+	
+	public static Move hurt2ndBest(int[][] board, ArrayList<Opponent> list, Direction home)
+	{
+		Opponent best = null;
+		double bestscore = 0;
+		Opponent second = null;
+		double secondscore = 0;
+		double temp = 0;
+		for(Opponent o : list)
+		{
+			if(best == null)
+			{
+				best = o;
+				bestscore = getCurrentScore(o.oppCorner, board);
+				break;
+			}
+			if(second == null)
+			{
+				second = o;
+				secondscore = getCurrentScore(o.oppCorner, board);
+				break;
+			}
+			if((temp=getCurrentScore(o.oppCorner, board)) > bestscore)
+			{
+				secondscore = bestscore;
+				second = best;
+				best = o;
+				bestscore = temp;
+				break;
+			}
+			if((temp=getCurrentScore(o.oppCorner, board)) > secondscore)
+			{
+				second = o;
+				secondscore = temp; 
+			}
+		}
+		return getBestMove(board, second, home, true, -1);
+	}
+	
 	
 	private static class Moves implements Comparable<Moves> {
 		private Move m;
