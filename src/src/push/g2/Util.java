@@ -482,6 +482,83 @@ public class Util {
 		return closest;
 	}
 	
+	public static Opponent getBestAlly(int[][] board, Direction home, ArrayList<Opponent> _list)
+	{
+		ArrayList<Opponent> list = new ArrayList<Opponent>();
+		
+		for(Opponent o: _list)
+		{
+			int score = getCurrentScore(o.oppCorner, board);
+			if(board[(int) o.oppCorner.getHome().getY()][(int) o.oppCorner.getHome().getY()]*4 != score && score != 0)
+				list.add(o);
+		}
+		
+		int[] help = {0,0,0,0,0,0};
+		int temp;
+		int oldDist;
+		int newDist;
+		Move m;
+		for(int i = 0; i < board.length; i++)
+		{
+			for(int j = 0; j < board[0].length; j++)
+			{
+				if(board[i][j] < 1)
+					continue;
+				for(Opponent o: list)
+				{
+					m = new Move(j,i,o.oppCorner.getOpposite());
+					oldDist = GameEngine.getDistance(home.getHome(), new Point(m.getX(),m.getY()));
+					newDist = GameEngine.getDistance(home.getHome(), new Point(m.getNewX(),m.getNewY()));
+					if((temp = oldDist-newDist)>0 && affectsPlayerScore(o.oppCorner, m, board) >= 0)
+					{
+						help[o.oppId] += board[i][j];
+					}
+					m = new Move(j,i,o.oppCorner.getOpposite().getLeft());
+					oldDist = GameEngine.getDistance(home.getHome(), new Point(m.getX(),m.getY()));
+					newDist = GameEngine.getDistance(home.getHome(), new Point(m.getNewX(),m.getNewY()));
+					if((temp = oldDist-newDist)>0 && affectsPlayerScore(o.oppCorner, m, board) >= 0 )
+					{
+						help[o.oppId] += board[i][j];
+					}
+					m = new Move(j,i,o.oppCorner.getOpposite().getRight());
+					oldDist = GameEngine.getDistance(home.getHome(), new Point(m.getX(),m.getY()));
+					newDist = GameEngine.getDistance(home.getHome(), new Point(m.getNewX(),m.getNewY()));
+					if((temp = oldDist-newDist)>0 && affectsPlayerScore(o.oppCorner, m, board) >= 0)
+					{
+						help[o.oppId] += board[i][j];
+					}
+				}
+			}
+		}
+			
+		int maxval=0;
+		int maxindex=-1;
+		for(int i = 0; i< 6; i++)
+		{
+			if(maxindex == -1)
+			{
+				maxindex = i;
+				maxval = help[i];
+				continue;
+			}
+			if(help[i] > maxval)
+			{
+				maxindex = i;
+				maxval = help[i];
+			}
+		}
+		
+		log.error("Best Helper : " + maxval);
+		
+		for(Opponent o: list)
+		{
+			if(o.oppId == maxindex)
+				return o;
+		}
+		
+		return null;
+	}
+	
 	private static class Moves implements Comparable<Moves> {
 		private Move m;
 		private double val;
