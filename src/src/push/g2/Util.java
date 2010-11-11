@@ -450,6 +450,37 @@ public class Util {
 		return getBestMove(board, second, home, true, -1);
 	}
 	
+	public static int numStacks(int[][] board)
+	{
+		int count =0;
+		for(int i = 0; i < board.length; i++)
+		{
+			for(int j = 0; j < board[0].length; j++)
+			{
+				if(board[i][j] < 1)
+					continue;
+				count++;
+			}
+		}
+		return count;
+	}
+	
+	public static int closestStack(int[][] board, Direction home)
+	{
+		int closest = 10;
+		int temp = 0;
+		for(int i = 0; i < board.length; i++)
+		{
+			for(int j = 0; j < board[0].length; j++)
+			{
+				if(board[i][j] < 1)
+					continue;
+				if((temp=GameEngine.getDistance(home.getHome(), new Point(j,i))) < closest)
+					closest = temp;
+			}
+		}
+		return closest;
+	}
 	
 	private static class Moves implements Comparable<Moves> {
 		private Move m;
