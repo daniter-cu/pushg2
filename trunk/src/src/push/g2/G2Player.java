@@ -25,6 +25,10 @@ public class G2Player extends Player{
 	//start the end game strategy with this many rounds remaining:
 	public static int END_GAME_START = 8;
 	
+	//magic tweakable numbers
+	public static double SWAP_TOP_TWO = 0.0;
+	public static double RANDOM_HURT = 0.0;
+	
 	ArrayList<Opponent> opponents;
 	
 	int curRound = -1;
@@ -80,6 +84,13 @@ public class G2Player extends Player{
 						playerPositions.get(oppCount),
 						numRounds));
 			}
+		}
+		
+		//change parameters based on the length of the game
+		if(numRounds > 55)
+		{
+			SWAP_TOP_TWO = .333;
+			RANDOM_HURT = 5.0;
 		}
 	}
 
@@ -158,7 +169,7 @@ public class G2Player extends Player{
 					percentOfOriginal = 50.0;
 				
 				//determine which of the two players to help based on a weighted average of who's helped more
-				if((Math.random()*100) < percentOfOriginal/2.0)
+				if((Math.random()*100) < percentOfOriginal*SWAP_TOP_TWO)
 				{
 					Collections.swap(opponents, 0, 1);
 					swapped = true;
@@ -194,32 +205,39 @@ public class G2Player extends Player{
 					return new Move(4,8, myCorner.getOpposite());
 				}
 				
-//				//if coins are too far away to ever get to us, sabotage forever!
-//				if(Util.closestStack(board, myCorner) > numRounds-curRound &&
-//						Util.closestStack(board, myCorner)>3 )
-//				{
-//					log.error("stacks are too far, sabotage opponents");
-//					return Util.hurt2ndBest(board, opponents, myCorner);
-//				}
-//				
-//				//if we can increase our score, do it
-//				Move nextMove = Util.increaseOurScore(board, myCorner);
-//				if(nextMove != null)
-//					return nextMove;
-//
-//				//if we have to decrease our score, do it
-//				if((nextMove = Util.hurtSelfLeast(board, myCorner)) != null)
-//					return nextMove;
-//				
-//				//we have no moves, so just return anything
-//				return new Move(4,8, myCorner.getOpposite());
+				//if there's an ally that can help us a lot, help them immediately
+				Opponent bestAlly = Util.getBestAlly(board, myCorner, opponents); 
+				if(bestAlly != null)
+				{
+					return Util.getBestMove(board, bestAlly, myCorner, true, 1);
+				}
+				
+				//if coins are too far away to ever get to us, sabotage forever!
+				if(Util.closestStack(board, myCorner) > numRounds-curRound &&
+						Util.closestStack(board, myCorner)>3 )
+				{
+					log.error("stacks are too far, sabotage opponents");
+					return Util.hurt2ndBest(board, opponents, myCorner);
+				}
+				
+				//if we can increase our score, do it
+				Move nextMove = Util.increaseOurScore(board, myCorner);
+				if(nextMove != null)
+					return nextMove;
+
+				//if we have to decrease our score, do it
+				if((nextMove = Util.hurtSelfLeast(board, myCorner)) != null)
+					return nextMove;
+				
+				//we have no moves, so just return anything
+				return new Move(4,8, myCorner.getOpposite());
 			}
 			
 			/**
 			 * Execute the normal-game strategy!
 			 */
 			//10% of the time, hurt somebody instead
-			if(Math.random()*100 < 10 && !swapped)
+			if(Math.random()*100.0 < RANDOM_HURT && !swapped)
 			{
 				//randomly hurt the player that hurt us the most
 				if(Math.random()*2 == 0)
