@@ -89,8 +89,14 @@ public class G2Player extends Player{
 		//change parameters based on the length of the game
 		if(numRounds > 55)
 		{
-			SWAP_TOP_TWO = .333;
+			SWAP_TOP_TWO = 0.333;
 			RANDOM_HURT = 5.0;
+		}
+		
+		if(numRounds < 30)
+		{
+			SWAP_TOP_TWO = 0.5;
+			RANDOM_HURT = 0.0;
 		}
 	}
 
@@ -220,15 +226,16 @@ public class G2Player extends Player{
 					}
 					
 					//if coins are too far away to ever get to us, sabotage forever!
+					Move nextMove = Util.hurt2ndBest(board, opponents, myCorner);
 					if(Util.closestStack(board, myCorner) > numRounds-curRound &&
 							Util.closestStack(board, myCorner)>3 )
 					{
-						log.error("stacks are too far, sabotage opponents");
+						//log.error("stacks are too far, sabotage opponents");
 						return Util.hurt2ndBest(board, opponents, myCorner);
 					}
 					
 					//if we can increase our score, do it
-					Move nextMove = Util.increaseOurScore(board, myCorner);
+					nextMove = Util.increaseOurScore(board, myCorner);
 					if(nextMove != null)
 						return nextMove;
 	
