@@ -447,6 +447,12 @@ public class Util {
 				secondscore = temp; 
 			}
 		}
+		
+		if(secondscore == 0 || (board[(int) second.oppCorner.getHome().getY()][(int) second.oppCorner.getHome().getY()]*4 != secondscore && second.oppCorner.getOpposite() == home))
+		{
+			return getBestMove(board, best, home, true, -1);
+		}
+		
 		return getBestMove(board, second, home, true, -1);
 	}
 	
