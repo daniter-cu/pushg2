@@ -98,11 +98,16 @@ public class Util {
 					{
 						// if we don't care about hurting ourselves, every move is valid
 						if(ignoreSelfHurt)
+						{
 							moves.add(new Moves(m,hurt*worthOfAMove(board,op.oppCorner,m)));
 						// if we don't want to hurt ourselves, only add moves that don't hurt us
+						}
 						else if(affectsPlayerScore(home, m, board) >= 0)
+						{
+							
+							log.error("returned " +m+": " + worthOfAMove(board, op.oppCorner, m) + ", " + hurt);
 							moves.add(new Moves(m,hurt*worthOfAMove(board,op.oppCorner,m)));
-						
+						}
 						//log.debug("VALID: " + m.getX() + "," + m.getY() + ": " + m.getDirection());
 						//moves.add(new Moves(m,worthOfAMove(board,op.oppCorner,m)));
 					}
@@ -181,7 +186,7 @@ public class Util {
 		}
 		if(best != null)
 		{
-			//	log.error("Move: " +best.getM()+ " value: " + best.getVal());
+			log.error("Move: " +best.getM()+ " value: " + best.getVal());
 			return best.getM();
 		}
 		return null;
@@ -192,9 +197,10 @@ public class Util {
     {
 		//log.error("Testing Move : " + m);
 		double score = affectsPlayerScore(opCorner,m,board);
+		log.error("Worth of move: " + score);
 		if(score != 0)
 		{
-			//log.error(score);
+			log.error(m + " : " + score);
 			return score;
 		}
 		//double points = affectsPlayerScore(g2Corner, m, board); 
@@ -422,6 +428,11 @@ public class Util {
 		}
 		
 		Collections.sort(list, new Opponent(0, home, home, 0));
+		Collections.reverse(list);
+		for(Opponent o : list)
+		{
+			log.error(o.oppId);
+		}
 		
 //		Opponent temp = list.get(0);
 //		list.set(0, list.get(1));
@@ -429,8 +440,10 @@ public class Util {
 		Move m;
 		for(Opponent o : list)
 		{
-			m = getBestMove(board, o, home, false, -1);
-			if(affectsPlayerScore(o.oppCorner, m, board) <= 0)
+			m = getBestMove(board, o, home, false, -1.0);
+			if(m == null)
+				continue;
+			if(affectsPlayerScore(o.oppCorner, m, board) <= -1)
 			{
 				return m;
 			}
@@ -579,9 +592,7 @@ public class Util {
 				maxval = help[i];
 			}
 		}
-		
-		log.error("Best Helper : " + maxval);
-		
+			
 		for(Opponent o: list)
 		{
 			if(o.oppId == maxindex)
