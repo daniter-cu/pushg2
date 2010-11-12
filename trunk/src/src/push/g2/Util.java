@@ -423,9 +423,9 @@ public class Util {
 		
 		Collections.sort(list, new Opponent(0, home, home, 0));
 		
-		Opponent temp = list.get(0);
-		list.set(0, list.get(1));
-		list.set(1, temp);
+//		Opponent temp = list.get(0);
+//		list.set(0, list.get(1));
+//		list.set(1, temp);
 		Move m;
 		for(Opponent o : list)
 		{
