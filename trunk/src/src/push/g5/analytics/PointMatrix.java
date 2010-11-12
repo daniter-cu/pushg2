@@ -1,37 +1,29 @@
-package push.g5;
+package push.g5.analytics;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
+import push.g5.Slot;
+import push.g5.g5player;
+import push.sim.GameController;
 import push.sim.GameEngine;
 import push.sim.Move;
 import push.sim.MoveResult;
 
 public class PointMatrix {
+	static Logger log;
+	static
+	{
+		log = Logger.getLogger(GameController.class);
+	}
+	
 	private final int NUM_PLAYERS = 6;
 	private int[][] pointMatrix = new int[NUM_PLAYERS][NUM_PLAYERS];
 	private int[][] netMoves = new int[NUM_PLAYERS][NUM_PLAYERS];
 	private HelpRatio[][] helpMatrix = new HelpRatio[NUM_PLAYERS][NUM_PLAYERS];
 	private int[][] oldBoard = new int[9][17];
 	private g5player player;
-	
-	public static ArrayList<Slot> invalidSlots = new ArrayList<Slot>();
-	
-	static
-	{
-		invalidSlots.add(new Slot(2, 0));
-		invalidSlots.add(new Slot(1, 1));
-		invalidSlots.add(new Slot(0, 2));
-		invalidSlots.add(new Slot(14, 0));
-		invalidSlots.add(new Slot(15, 1));
-		invalidSlots.add(new Slot(16, 2));
-		invalidSlots.add(new Slot(16, 6));
-		invalidSlots.add(new Slot(15, 7));
-		invalidSlots.add(new Slot(14, 8));
-		invalidSlots.add(new Slot(0, 6));
-		invalidSlots.add(new Slot(1, 7));
-		invalidSlots.add(new Slot(2, 8));
-	}
 	
 	public PointMatrix(g5player player)
 	{
@@ -77,26 +69,33 @@ public class PointMatrix {
 		return helpMatrix;
 	}
 	
+	public void setPreviousBoard(int[][] prevBoard)
+	{
+		oldBoard = prevBoard;
+	}
+	
 	private void addRoundToHelpMatrix(int affectorIndex, int affectedIndex, int pointChange)
 	{
-		Move bestMove = player.findMostHelpfulMove(player.getDirection(affectorIndex), player.getDirection(affectedIndex));
+		Move bestMove = player.findMostHelpfulMove(player.getDirection(affectorIndex), player.getDirection(affectedIndex), oldBoard);
 		NetMove bestNetMove = calcNetMove(bestMove, oldBoard);
 		
-		Move worstMove = player.findMostHurtfulMove(player.getDirection(affectorIndex), player.getDirection(affectedIndex));
+		Move worstMove = player.findMostHurtfulMove(player.getDirection(affectorIndex), player.getDirection(affectedIndex), oldBoard);
 		NetMove worstNetMove = calcNetMove(worstMove, oldBoard);
 		
-		int bestPointChangePossible;
+		int bestPointChangePossible=0;
 		if( bestNetMove.playerIncreaseIndex == affectedIndex )
 			bestPointChangePossible = bestNetMove.pointIncrease;
-		else
+		else if( bestNetMove.playerDecreaseIndex == affectedIndex )
 			bestPointChangePossible = bestNetMove.pointDecrease;
 		
-		int worstPointChangePossible;
+		int worstPointChangePossible=0;
 		if( worstNetMove.playerIncreaseIndex == affectedIndex )
 			worstPointChangePossible = worstNetMove.pointIncrease;
-		else
+		else if( worstNetMove.playerDecreaseIndex == affectedIndex )
 			worstPointChangePossible = worstNetMove.pointDecrease;
 		
+		if(pointChange > bestPointChangePossible || pointChange < worstPointChangePossible || bestPointChangePossible < worstPointChangePossible)
+			log.error("affector: "+affectorIndex+" affected: "+affectedIndex+" change: "+pointChange+" best: "+bestPointChangePossible+" worst: "+worstPointChangePossible);
 		helpMatrix[affectorIndex][affectedIndex].addRound(pointChange, bestPointChangePossible, worstPointChangePossible);
 		
 	}
@@ -106,7 +105,7 @@ public class PointMatrix {
 		for(MoveResult m : currentMoves)
 		{
 			NetMove n = new NetMove();
-			if(m.isSuccess() != false)
+			if( /*m.isSuccess() != false*/ true )
 			{
 				n = calcNetMove(m.getMove(), oldBoard);
 		

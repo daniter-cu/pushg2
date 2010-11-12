@@ -1,4 +1,4 @@
-package push.g5;
+package push.g5.teams;
 
 import java.util.ArrayList;
 

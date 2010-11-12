@@ -1,4 +1,4 @@
-package push.g5;
+package push.g5.analytics;
 
 public class NetMove {
 	public int playerIncreaseIndex;

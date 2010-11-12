@@ -1,32 +1,32 @@
-package push.g5;
+package push.g5.analytics;
+
+import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 
 import push.sim.GameController;
 
 public class HelpRatio {
-	static Logger log;
-	static
-	{
-		log = Logger.getLogger(GameController.class);
-	}
 	
 	private int bestPointChangePossible = 0;
 	private int worstPointChangePossible = 0;
 	private int pointChange = 0;
 	private int netHelpfulMoves = 0;
 	private double helpRatio=0;
+	private ArrayList<HelpRatioComponents> moves = new ArrayList<HelpRatioComponents>();
 
 	public void addRound(int currentPointChange, int currentBestPointChangePossible, int currentWorstPointChangePossible)
 	{
-		if(currentPointChange > currentBestPointChangePossible || currentPointChange < currentWorstPointChangePossible || currentBestPointChangePossible < currentWorstPointChangePossible)
-			log.info("change: "+currentPointChange+" best: "+currentBestPointChangePossible+" worst: "+currentWorstPointChangePossible);
+		moves.add(new HelpRatioComponents(currentPointChange, currentBestPointChangePossible, currentWorstPointChangePossible));
 		
 		pointChange += currentPointChange;
 		bestPointChangePossible += currentBestPointChangePossible;
 		worstPointChangePossible += currentWorstPointChangePossible;
 		
-		helpRatio = 2.0 * ( pointChange - worstPointChangePossible ) / ( bestPointChangePossible - worstPointChangePossible ) - 1;
+		if( bestPointChangePossible == worstPointChangePossible )
+			helpRatio = 0;
+		else
+			helpRatio = 2.0 * ( pointChange - worstPointChangePossible ) / ( bestPointChangePossible - worstPointChangePossible ) - 1;
 		
 		if( currentPointChange > 0 )
 			netHelpfulMoves++;
@@ -54,6 +54,11 @@ public class HelpRatio {
 	public double getHelpRatio()
 	{
 		return helpRatio;
+	}
+	
+	public ArrayList<HelpRatioComponents> getMoves()
+	{
+		return moves;
 	}
 	
 	public String toString()

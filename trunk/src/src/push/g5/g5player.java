@@ -1,11 +1,22 @@
 package push.g5;
 
+import java.awt.AWTException;
 import java.awt.Point;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import org.apache.log4j.Logger;
 
+import push.g5.analytics.HelpRatio;
+import push.g5.analytics.HelpRatioComponents;
+import push.g5.analytics.NetMove;
+import push.g5.analytics.PointMatrix;
 import push.sim.GameConfig;
 import push.sim.GameEngine;
 import push.sim.Move;
@@ -14,145 +25,92 @@ import push.sim.Player;
 
 public class g5player extends Player{
 	int[][] board;
+	int[][] boardCopy;
 	private Logger log = Logger.getLogger(this.getClass());
 	private ArrayList<Direction> playerPositions;
 	private int round = 0;
-	private PointMatrix pointMatrix1;
-	private PointMatrix pointMatrix2;
-	private PointMatrix pointMatrix3;
-	private PointMatrix currentMatrix;
 	private PointMatrix pointMatrixWholeGame;
+	private ScreenGrabber grabber = new ScreenGrabber();
 	
-	private static ArrayList<Slot> slotListNorthWest;
-	private static ArrayList<Slot> slotListNorthEast;
-	private static ArrayList<Slot> slotListEast;
-	private static ArrayList<Slot> slotListSouthEast;
-	private static ArrayList<Slot> slotListSouthWest;
-	private static ArrayList<Slot> slotListWest;
-	static{
-		slotListWest = new ArrayList<Slot>();
-		slotListWest.add(new Slot(1,3));
-		slotListWest.add(new Slot(2,4));
-		slotListWest.add(new Slot(1,5));
-		slotListWest.add(new Slot(2,2));
-		slotListWest.add(new Slot(3,3));
-		slotListWest.add(new Slot(4,4));
-		slotListWest.add(new Slot(3,5));
-		slotListWest.add(new Slot(2,6));
-		slotListWest.add(new Slot(4,2));
-		slotListWest.add(new Slot(5,3));
-		slotListWest.add(new Slot(6,4));
-		slotListWest.add(new Slot(5,5));
-		slotListWest.add(new Slot(4,6));
-		slotListWest.add(new Slot(7,3));
-		slotListWest.add(new Slot(8,4));
-		slotListWest.add(new Slot(7,5));
+	private int NUMRECENTMOVES = 5;
+	private static boolean IS_FIRST = true;
+	private int currentRound = -2;
+	private int lastCooperator = -1;
+	
+	private static int CURRENT_GAME_NUMBER;
+	private static boolean TAKE_SCREEN_SHOTS = false;
+	private static String gameNumberFile = "screen_shots/current_game.txt";
+	
+	static
+	{
+		File f = new File(gameNumberFile);
+		Scanner fileReader = null;
+		try {
+			fileReader = new Scanner(f);
+		} catch (FileNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		CURRENT_GAME_NUMBER = fileReader.nextInt();
 		
-		slotListSouthWest = new ArrayList<Slot>();
-		slotListSouthWest.add(new Slot(3,7));
-		slotListSouthWest.add(new Slot(5,7));
-		slotListSouthWest.add(new Slot(6,8));
-		slotListSouthWest.add(new Slot(2,6));
-		slotListSouthWest.add(new Slot(4,6));
-		slotListSouthWest.add(new Slot(6,6));
-		slotListSouthWest.add(new Slot(7,7));
-		slotListSouthWest.add(new Slot(8,8));
-		slotListSouthWest.add(new Slot(3,5));
-		slotListSouthWest.add(new Slot(5,5));
-		slotListSouthWest.add(new Slot(7,5));
-		slotListSouthWest.add(new Slot(8,6));
-		slotListSouthWest.add(new Slot(9,7));
-		slotListSouthWest.add(new Slot(6,4));
-		slotListSouthWest.add(new Slot(8,4));
-		slotListSouthWest.add(new Slot(9,5));
-		
-		slotListSouthEast = new ArrayList<Slot>();
-		slotListSouthEast.add(new Slot(10,8));
-		slotListSouthEast.add(new Slot(11,7));
-		slotListSouthEast.add(new Slot(13,7));
-		slotListSouthEast.add(new Slot(8,8));
-		slotListSouthEast.add(new Slot(9,7));
-		slotListSouthEast.add(new Slot(10,6));
-		slotListSouthEast.add(new Slot(12,6));
-		slotListSouthEast.add(new Slot(14,6));
-		slotListSouthEast.add(new Slot(7,7));
-		slotListSouthEast.add(new Slot(8,6));
-		slotListSouthEast.add(new Slot(9,5));
-		slotListSouthEast.add(new Slot(11,5));
-		slotListSouthEast.add(new Slot(13,5));
-		slotListSouthEast.add(new Slot(7,5));
-		slotListSouthEast.add(new Slot(8,4));
-		slotListSouthEast.add(new Slot(10,4));
-		
-		slotListEast = new ArrayList<Slot>();
-		slotListEast.add(new Slot(15,5));
-		slotListEast.add(new Slot(14,4));
-		slotListEast.add(new Slot(15,3));
-		slotListEast.add(new Slot(14,6));
-		slotListEast.add(new Slot(13,5));
-		slotListEast.add(new Slot(12,4));
-		slotListEast.add(new Slot(13,3));
-		slotListEast.add(new Slot(14,2));
-		slotListEast.add(new Slot(12,6));
-		slotListEast.add(new Slot(11,5));
-		slotListEast.add(new Slot(10,4));
-		slotListEast.add(new Slot(11,3));
-		slotListEast.add(new Slot(12,2));
-		slotListEast.add(new Slot(9,5));
-		slotListEast.add(new Slot(8,4));
-		slotListEast.add(new Slot(9,3));
-		
-		slotListNorthEast = new ArrayList<Slot>();
-		slotListNorthEast.add(new Slot(10,0));
-		slotListNorthEast.add(new Slot(11,1));
-		slotListNorthEast.add(new Slot(13,1));
-		slotListNorthEast.add(new Slot(8,0));
-		slotListNorthEast.add(new Slot(9,1));
-		slotListNorthEast.add(new Slot(10,2));
-		slotListNorthEast.add(new Slot(12,2));
-		slotListNorthEast.add(new Slot(14,2));
-		slotListNorthEast.add(new Slot(7,1));
-		slotListNorthEast.add(new Slot(8,2));
-		slotListNorthEast.add(new Slot(9,3));
-		slotListNorthEast.add(new Slot(11,3));
-		slotListNorthEast.add(new Slot(13,3));
-		slotListNorthEast.add(new Slot(7,3));
-		slotListNorthEast.add(new Slot(8,4));
-		slotListNorthEast.add(new Slot(10,4));
-		
-		slotListNorthWest = new ArrayList<Slot>();
-		slotListNorthWest.add(new Slot(3,1));
-		slotListNorthWest.add(new Slot(5,1));
-		slotListNorthWest.add(new Slot(6,0));
-		slotListNorthWest.add(new Slot(2,2));
-		slotListNorthWest.add(new Slot(4,2));
-		slotListNorthWest.add(new Slot(6,2));
-		slotListNorthWest.add(new Slot(7,1));
-		slotListNorthWest.add(new Slot(8,0));
-		slotListNorthWest.add(new Slot(3,3));
-		slotListNorthWest.add(new Slot(5,3));
-		slotListNorthWest.add(new Slot(7,3));
-		slotListNorthWest.add(new Slot(8,2));
-		slotListNorthWest.add(new Slot(9,1));
-		slotListNorthWest.add(new Slot(6,4));
-		slotListNorthWest.add(new Slot(8,4));
-		slotListNorthWest.add(new Slot(9,3));
+		try{
+	    // Create file 
+	    FileWriter fstream = new FileWriter(gameNumberFile);
+	        BufferedWriter out = new BufferedWriter(fstream);
+	    out.write(""+(CURRENT_GAME_NUMBER+1));
+	    //Close the output stream
+	    out.close();
+	    }catch (Exception e){//Catch exception if any
+	      System.err.println("Error: " + e.getMessage());
+	    }
 	}
 
 	@Override
 	public void updateBoardState(int[][] board) {
 		this.board= board;
+		
+		if( ( IS_FIRST || currentRound != -2 ) && TAKE_SCREEN_SHOTS )
+		{
+			IS_FIRST = false;
+			try {
+				grabber.grabScreen(CURRENT_GAME_NUMBER + "_" + ++currentRound);
+			} catch (AWTException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	@Override
 	public String getName() {
 		// TODO Auto-generated method stub
 		return "Prisoner 0";
 	}
+	
+	public int[][] copyBoard(int[][] myBoard)
+	{
+		int[][] myNewBoard = new int[9][17];
+		for(int y = 0; y < 9; y++)
+		{
+			for(int x = 0; x < 17; x++)
+			{
+				myNewBoard[y][x] = myBoard[y][x];
+			}
+		}
+		return myNewBoard;
+	}
+	
 	Direction myCorner;
 	boolean cooperationEstablished;
 	int cooperatorRelative = -1;
 	int numTriesToInitiateCooperation = 0;
 	Direction playerToHelp;
+	ArrayList<List<MoveResult>> allMoveLists = new ArrayList<List<MoveResult>>(); 
+	ArrayList<int[][]> allBoards = new ArrayList<int[][]>();
+	
+	
 	int id;
 	@Override
 	public void startNewGame(int id, int m,
@@ -161,73 +119,79 @@ public class g5player extends Player{
 		this.playerPositions = playerPositions;
 		this.id=id;
 		cooperationEstablished = false;
-		pointMatrix1 = new PointMatrix(this);
-		pointMatrix2 = new PointMatrix(this);
-		pointMatrix3 = new PointMatrix(this);
 		pointMatrixWholeGame = new PointMatrix(this);
 	} 
 
 	@Override
 	public Move makeMove(List<MoveResult> previousMoves) {
-		log.info(getPlayerIndex(myCorner) + "round: " + round);
 		
-		pointMatrix1.addRound(previousMoves, board);
-		pointMatrix2.addRound(previousMoves, board);
-		pointMatrix3.addRound(previousMoves, board);
+		log.info("");
+		log.info("--------------------------------------------------");
+		log.info(getPlayerIndex(myCorner) + "ROUND: " + round);
+		
+		allMoveLists.add(previousMoves);
+		allBoards.add(copyBoard(board));
+		
 		pointMatrixWholeGame.addRound(previousMoves, board);
 		
-		if(round % 3 == 0)
-		{
-			currentMatrix = pointMatrix1;
-			pointMatrix1 = new PointMatrix(this);
-		}
-		else if(round % 3 == 1)
-		{
-			currentMatrix = pointMatrix2;
-			pointMatrix2 = new PointMatrix(this);
-		}
-		else if(round % 3 == 2)
-		{
-			currentMatrix = pointMatrix3;
-			pointMatrix3 = new PointMatrix(this);
-		}
+		PointMatrix recentPointMatrix = new PointMatrix(this);
 		
-//		int[][] currentPointMatrix = pointMatrix.getPointMatrix();
-//		System.err.println("Point Matrix:");
-//		for(int i=0; i<currentPointMatrix.length; i++)
-//		{
-//			for(int j=0; j<currentPointMatrix[0].length; j++)
-//			{
-//				System.err.print(currentPointMatrix[i][j] + " ");
-//			}
-//			System.err.println();
-//		}
-//		
-//		System.err.println("\nNet moves matrix:");
-//		int[][] currentNetMoveMatrix = pointMatrix.getNetMovesMatrix();
-//		for(int i=0; i<currentNetMoveMatrix.length; i++)
-//		{
-//			for(int j=0; j<currentNetMoveMatrix[0].length; j++)
-//			{
-//				System.err.print(currentNetMoveMatrix[i][j] + " ");
-//			}
-//			System.err.println();
-//		}
+		int lastIndex = allMoveLists.size() - 1;
+		if(lastIndex >= NUMRECENTMOVES)
+		{
+			recentPointMatrix.setPreviousBoard(allBoards.get(lastIndex - NUMRECENTMOVES));
+			for(int i = NUMRECENTMOVES-1; i >= 0; i--)
+			{
+				recentPointMatrix.addRound(allMoveLists.get(lastIndex - i), allBoards.get(lastIndex - i));
+			}
+		}
+		else //if at beginning of game, then the recentPointMatrix is just the matrix from the whole game. 
+		{
+			recentPointMatrix = pointMatrixWholeGame;
+		}
 		
 		log.info(null);
-		log.info(getPlayerIndex(myCorner) + "Help ratio matrix from the last three rounds:");
-		HelpRatio[][] currentHelpMatrix = currentMatrix.getHelpMatrix();
-		printMatrix(currentHelpMatrix);
-		
-
+		log.info(getPlayerIndex(myCorner) + "Help ratio matrix from the last " + NUMRECENTMOVES + " rounds:");
+		HelpRatio[][] recentHelpMatrix = recentPointMatrix.getHelpMatrix();
+		printMatrix(recentHelpMatrix);
 		
 		double highestRatio = -1.0;
 		int cooperatingPlayer = 0;
-		for(int i = 0; i < 5; i++)
+		for(int i = 0; i < 6; i++)
 		{
 			if(i != getPlayerIndex(myCorner))
 			{
-				double thisRatio = currentHelpMatrix[i][getPlayerIndex(myCorner)].getHelpRatio();
+				double thisRatio = recentHelpMatrix[i][getPlayerIndex(myCorner)].getHelpRatio();
+				log.info(getPlayerIndex(myCorner) + "    Best possible help amount of player " + i + " to me (player " + getPlayerIndex(myCorner) + ") is: " + recentHelpMatrix[i][getPlayerIndex(myCorner)].getPositivePointsPossible());
+				ArrayList<HelpRatioComponents> myHRC = recentHelpMatrix[i][getPlayerIndex(myCorner)].getMoves();
+				int theSize = myHRC.size();
+				String myString = getPlayerIndex(myCorner) + "               ";
+				for(int m = 0; m < theSize; m++)
+				{
+					myString += " " + myHRC.get(m).max;
+				}
+				log.info(myString);
+				
+				
+				log.info(getPlayerIndex(myCorner) + "    Worst possible help amount of player " + i + " to me (player " + getPlayerIndex(myCorner) + ") is: " + recentHelpMatrix[i][getPlayerIndex(myCorner)].getNegativePointsPossible());				
+				myString = getPlayerIndex(myCorner) + "               ";
+				for(int m = 0; m < theSize; m++)
+				{
+					myString += " " + myHRC.get(m).min;
+				}
+				log.info(myString);
+				
+				
+				log.info(getPlayerIndex(myCorner) + "    Actual Change in points of player " + i + " to me (player " + getPlayerIndex(myCorner) + ") is: " + recentHelpMatrix[i][getPlayerIndex(myCorner)].getPointChange());
+				myString = getPlayerIndex(myCorner) + "               ";
+				for(int m = 0; m < theSize; m++)
+				{
+					myString += " " + myHRC.get(m).change;
+				}
+				log.info(myString);
+				
+				log.info(getPlayerIndex(myCorner) + "    Help Ratio of player " + i + " to me (player " + getPlayerIndex(myCorner) + ") is: " + recentHelpMatrix[i][getPlayerIndex(myCorner)].getHelpRatio());
+				log.info(getPlayerIndex(myCorner));
 				if(thisRatio >= highestRatio)
 				{
 					highestRatio = thisRatio;
@@ -235,16 +199,39 @@ public class g5player extends Player{
 				}
 			}
 		}
+		
+		
+		if(cooperatingPlayer != lastCooperator)
+		{
+			if(lastCooperator != -1)
+			{
+				double ratioOfLastCooperator = recentHelpMatrix[lastCooperator][getPlayerIndex(myCorner)].getHelpRatio();
+				if(ratioOfLastCooperator >= .9*highestRatio)
+				{
+					cooperatingPlayer = lastCooperator;
+					log.info(getPlayerIndex(myCorner) + " ***Even though our last cooperator didn't have the highest ratio this time, he still is within 10% of the best, so we are sticking with him");
+				}
+			}
+		}
 
+		
+		//if there's nothing our last cooperator could have done to help us, let's still cooperate with him.
+		if(lastCooperator != -1)
+		{
+			if(recentHelpMatrix[lastCooperator][getPlayerIndex(myCorner)].getPositivePointsPossible() == 0)  
+			{
+				cooperatingPlayer = lastCooperator;
+			}
+		}
 		
 		log.info(getPlayerIndex(myCorner) + "Found that the player most trying to help me is player " + cooperatingPlayer + " with a ratio of " + highestRatio); 
 		
 		if(highestRatio <= .7)
 		{
 			playerToHelp = myCorner.getRelative(cooperatorRelative);
-			log.info(getPlayerIndex(myCorner) + "Help ratio from affector player " + getPlayerIndex(playerToHelp) + " to affected player " + getPlayerIndex(myCorner) + " is: " + currentHelpMatrix[getPlayerIndex(playerToHelp)][getPlayerIndex(myCorner)].getHelpRatio());
+			log.info(getPlayerIndex(myCorner) + "Help ratio from affector player " + getPlayerIndex(playerToHelp) + " to affected player " + getPlayerIndex(myCorner) + " is: " + recentHelpMatrix[getPlayerIndex(playerToHelp)][getPlayerIndex(myCorner)].getHelpRatio());
 			
-			if(numTriesToInitiateCooperation >= 4 && currentHelpMatrix[getPlayerIndex(playerToHelp)][getPlayerIndex(myCorner)].getHelpRatio() <= .4) 
+			if(numTriesToInitiateCooperation >= 4 && recentHelpMatrix[getPlayerIndex(playerToHelp)][getPlayerIndex(myCorner)].getHelpRatio() <= .4) 
 			{
 				if(cooperatorRelative <= 0)
 				{
@@ -255,6 +242,7 @@ public class g5player extends Player{
 				}
 				else
 				{
+					
 					log.info("Couldn't find any cooperators, so make a random move");
 					return generateRandomMove(0);
 				}
@@ -272,8 +260,9 @@ public class g5player extends Player{
 		
 		log.info(getPlayerIndex(myCorner) + "direction we are trying to cooperate with is: " + playerToHelp.name());
 		log.info(getPlayerIndex(myCorner) + "index of this direction is: " + getPlayerIndex(playerToHelp));
+		lastCooperator = getPlayerIndex(playerToHelp);
 		
-		Move moveToMake = findMostHelpfulMove(myCorner, playerToHelp);
+		Move moveToMake = findMostHelpfulMove(myCorner, playerToHelp, board);
 		round++;
 		numTriesToInitiateCooperation++;
 		log.info(getPlayerIndex(myCorner) + "Move is: " + moveToMake.getX() + ", " + moveToMake.getY() + " to " + moveToMake.getNewX() + ", " + moveToMake.getNewY());
@@ -303,125 +292,178 @@ public class g5player extends Player{
 	 * The most helpful move is the one that increases receiverOfHelp's score by the most points
 	 * (or decreases it by the least points if no helpful moves are possible). 
 	 */
-	public Move findMostHelpfulMove(Direction helper, Direction receiverOfHelp)
+	public Move findMostHelpfulMove(Direction helper, Direction receiverOfHelp, int[][] myBoard)
 	{
-		int maxPointChange = -122;//this is the minimum possible change in points, so we initialize maxPointChange to this. 
-		Move moveToMake = null;
-		ArrayList<Slot> potentialSlots = getPotentiallyHelpfulSlots(receiverOfHelp);
+		return findMostHelpfulMove(helper, receiverOfHelp, myBoard, false);
+	}
+	
+	public Move findMostHelpfulMove(Direction helper, Direction receiverOfHelp, int[][] myBoard, boolean helpFullIndirectly)
+	{
+		int maxPointChange = -122;
+		Move moveToMake = new Move(8,4,myCorner.getOpposite()); //initialize moveToMake to a random move in case it finds that no moves are possible.
+		ArrayList<Slot> potentialSlots = getAllSlots();
+		int minHurtHelperAmount = 122;
 		for(int i = 0; i < potentialSlots.size(); i++)
 		{
 			Slot mySlot = potentialSlots.get(i);
-			//System.out.println("Trying position " + mySlot.getX() + ", " + mySlot.getY());
-			if(board[mySlot.getY()][mySlot.getX()] != 0)
+			if(myBoard[mySlot.getY()][mySlot.getX()] != 0)
 			{
 				for(int j = -1; j <= 1; j++)
 				{
-					Move m = new Move(mySlot.getX(), mySlot.getY(), helper.getRelative(j));
-					NetMove myNetMove = pointMatrixWholeGame.calcNetMove(m, board);
-					int pointIncrease = myNetMove.pointIncrease;
-					if(myNetMove.playerIncreaseIndex == getPlayerIndex(receiverOfHelp) && GameEngine.isInBounds(m.getNewX(), m.getNewY()))
+					Move m = new Move(mySlot.getX(), mySlot.getY(), helper.getRelative(j));	
+					if(GameEngine.isInBounds(m.getNewX(), m.getNewY()))
 					{
-						if(pointIncrease > maxPointChange)
+						boolean moveHurtsHelper = false;
+						int hurtHelperAmount = 0;
+						NetMove myNetMove = pointMatrixWholeGame.calcNetMove(m, myBoard);
+						int pointChange = 0;
+						if(myNetMove.playerIncreaseIndex == getPlayerIndex(receiverOfHelp))
 						{
-							maxPointChange = pointIncrease;
-							moveToMake = m;
+							pointChange = myNetMove.pointIncrease;
+							minHurtHelperAmount = 0;
 						}
-					} 
-				}
-			}
-		}
-		
-		if(moveToMake == null)
-		{
-			moveToMake = new Move(8,4,myCorner.getOpposite()); //initialize moveToMake to a random move in case it finds that no moves are possible. 
-			//If it reaches here, then it couldn't find a move that increased receiverOfHelp's score. 
-			//So here it tries to find a netural move - i.e. one that does not change receiverOfHelp's score.
-			//If this is not possible, it finds the least hurtful move. 
-			boolean foundBest = false;
-			potentialSlots = getAllSlots();
-			for(int i = 0; i < potentialSlots.size(); i++)
-			{
-				if(foundBest == false) //this is here to prevent unnecessary iterations of the loop from occurring if a neutral move is found (because we would then know's it's definitely best because we already know the best we can do is a neutral move).  
-				{
-					Slot mySlot = potentialSlots.get(i);
-					if(board[mySlot.getY()][mySlot.getX()] != 0)
-					{
-						for(int j = -1; j <= 1; j++)
+						else if(myNetMove.playerDecreaseIndex != getPlayerIndex(receiverOfHelp))
 						{
-							Move m = new Move(mySlot.getX(), mySlot.getY(), helper.getRelative(j));			
-							NetMove myNetMove = pointMatrixWholeGame.calcNetMove(m, board);
-							//int pointIncrease = myNetMove.pointIncrease;
-							if((myNetMove.playerIncreaseIndex != -1 || myNetMove.playerDecreaseIndex != -1) && myNetMove.playerDecreaseIndex != getPlayerIndex(receiverOfHelp) && GameEngine.isInBounds(m.getNewX(), m.getNewY()))
+							if(myNetMove.playerDecreaseIndex != getPlayerIndex(helper))
 							{
-								maxPointChange = 0; //playerIncreaseIndex could not have possibly been receiverOfHelp if we've made it here, and so if it gets here then the best move is one that doesn't change receiverOfHelp's score. 
-								moveToMake = m;
-								foundBest = true;
-							} 
+								pointChange = 0;
+								minHurtHelperAmount = 0;
+							}
 							else
 							{
-								int pointChange = -1*myNetMove.pointDecrease;
-								if(myNetMove.playerDecreaseIndex == getPlayerIndex(receiverOfHelp) && GameEngine.isInBounds(m.getNewX(), m.getNewY()))
-								{
-									if(pointChange > maxPointChange)
-									{
-										maxPointChange = pointChange;
-										moveToMake = m;
-									}
-								}
+								pointChange = 0;
+								moveHurtsHelper = true;
+								hurtHelperAmount = myNetMove.pointDecrease;
+							}
+						}
+						else if(myNetMove.playerDecreaseIndex == getPlayerIndex(receiverOfHelp))
+						{
+							pointChange = myNetMove.pointDecrease;
+						}
+						
+						if(pointChange >= maxPointChange)
+						{
+							if(moveHurtsHelper == false)
+							{
+								maxPointChange = pointChange;
+								moveToMake = m;
+							}
+							else if(hurtHelperAmount < minHurtHelperAmount)
+							{
+								minHurtHelperAmount = hurtHelperAmount;
+								maxPointChange = pointChange;
+								moveToMake = m;
 							}
 						}
 					}
 				}
 			}
 		}
+		
+		if(maxPointChange == 0 && helpFullIndirectly)
+		{
+			if(findBestIndirectMove(helper, receiverOfHelp, myBoard) != null)
+				moveToMake = findBestIndirectMove(helper, receiverOfHelp, myBoard);
+			else
+				log.error("FINDBESTINDIRECTMOVE RETURNED null! Something wrong is happening. ");
+		}
+		
+		//log.info("Most helpful move that player " + getPlayerIndex(helper) + " can do for player " + getPlayerIndex(receiverOfHelp) + " is move " + moveToMake.getX() + ", " + moveToMake.getY() + "to " + moveToMake.getNewX() + ", " + moveToMake.getNewY() + " which has a point change of " + maxPointChange);
 		return moveToMake;
+	}
+	
+	//Change this so that it does not hurt itself.  
+	public Move findBestIndirectMove(Direction helper, Direction receiverOfHelp, int[][] myBoard)
+	{
+		log.info("Player " + getPlayerIndex(helper) + "  is finding best indirect move for player " + getPlayerIndex(receiverOfHelp));
+		double maxValue = 0.0;
+		Move moveToMake = null; 
+		ArrayList<Slot> potentialSlots = getAllSlots();
+		for(int i = 0; i < potentialSlots.size(); i++)
+		{
+			Slot mySlot = potentialSlots.get(i);
+			if(myBoard[mySlot.getY()][mySlot.getX()] != 0)
+			{
+				for(int j = -1; j <= 1; j++)
+				{
+					Move m = new Move(mySlot.getX(), mySlot.getY(), helper.getRelative(j));	
+					if(GameEngine.isInBounds(m.getNewX(), m.getNewY()))
+					{
+						int distanceFromPerimeter = findDistanceFromPerimeter(new Slot(m.getNewX(), m.getNewY()), getPlayerIndex(receiverOfHelp));
+						int distanceFromHome = GameEngine.getDistance(new Point(m.getNewX(), m.getNewY()), getHomePoint(getPlayerIndex(receiverOfHelp)));
+						double value = 1.0*myBoard[mySlot.getY()][mySlot.getX()]/distanceFromPerimeter + 1.0/distanceFromHome;
+						if(value > maxValue)
+						{
+							maxValue = value;
+							moveToMake = m;
+						}
+					}
+				}
+			}
+		}
+		
+		log.info("The most helpful indirect move was of value: " + maxValue);
+		
+		return moveToMake;
+	}
+	
+	
+	public int findDistanceFromPerimeter(Slot mySlot, int playerIndex)
+	{
+		ArrayList<Slot> slotList = getPerimeterSlots(playerIndex);
+		int minDistance = 20;
+		for(int i = 0; i < slotList.size(); i++)
+		{
+			Slot perimeterSlot = slotList.get(i);
+			Point myPerimeterPoint = new Point(perimeterSlot.getX(), perimeterSlot.getY());
+			int thisDistance = GameEngine.getDistance(myPerimeterPoint, new Point(mySlot.getX(), mySlot.getY()));
+			if(thisDistance < minDistance)
+			{
+				minDistance = thisDistance;
+			}
+		}
+		return minDistance;
 	}
 	
 	/* Returns the most hurtful move that player "hurter" can do for player "receiverOfHurtfulMove".
 	 * The most hurtful move is the one that decreases receiverOfHelp's score by the most points
 	 * (or increases it by the least points if no hurtful moves are possible). 
 	 */
-	public Move findMostHurtfulMove(Direction hurter, Direction receiverOfHurtfulMove)
+	public Move findMostHurtfulMove(Direction hurter, Direction receiverOfHurtfulMove, int[][] myBoard)
 	{
 		int minPointChange = 122;
-		Move moveToMake = new Move(8,4,myCorner.getOpposite()); //initialize moveToMake to a random move in case it finds that no moves are possible. 
-		ArrayList<Slot>potentialSlots = getAllSlots();
+		Move moveToMake = new Move(8,4,myCorner.getOpposite()); //initialize moveToMake to a random move in case it finds that no moves are possible.
+		
+		ArrayList<Slot> potentialSlots = getAllSlots();
 		for(int i = 0; i < potentialSlots.size(); i++)
 		{
 			Slot mySlot = potentialSlots.get(i);
-			if(board[mySlot.getY()][mySlot.getX()] != 0)
+			if(myBoard[mySlot.getY()][mySlot.getX()] != 0)
 			{
 				for(int j = -1; j <= 1; j++)
 				{
-					Move m = new Move(mySlot.getX(), mySlot.getY(), hurter.getRelative(j));			
-					NetMove myNetMove = pointMatrixWholeGame.calcNetMove(m, board);
-					if(myNetMove.playerDecreaseIndex == getPlayerIndex(receiverOfHurtfulMove))
+					Move m = new Move(mySlot.getX(), mySlot.getY(), hurter.getRelative(j));
+					if(GameEngine.isInBounds(m.getNewX(), m.getNewY()))
 					{
-						int pointChange = -1*myNetMove.pointDecrease;
-						if(pointChange < minPointChange)
+						NetMove myNetMove = pointMatrixWholeGame.calcNetMove(m, myBoard);
+						int pointChange = 0;
+						if(myNetMove.playerDecreaseIndex == getPlayerIndex(receiverOfHurtfulMove))
+						{
+							pointChange = myNetMove.pointDecrease;
+						}
+						else if(myNetMove.playerIncreaseIndex != getPlayerIndex(receiverOfHurtfulMove))
+						{
+							pointChange = 0;
+						}
+						else if(myNetMove.playerIncreaseIndex == getPlayerIndex(receiverOfHurtfulMove))
+						{
+							pointChange = myNetMove.pointIncrease;
+						}
+						
+						if(pointChange <= minPointChange)
 						{
 							minPointChange = pointChange;
 							moveToMake = m;
-						}
-					} 
-					else if((myNetMove.playerDecreaseIndex != -1 || myNetMove.playerIncreaseIndex != -1) && myNetMove.playerIncreaseIndex != getPlayerIndex(receiverOfHurtfulMove))
-					{
-						if(0 < minPointChange)
-						{
-							minPointChange = 0;
-							moveToMake = m;
-						}
-					}
-					else
-					{
-						if(myNetMove.playerIncreaseIndex == getPlayerIndex(receiverOfHurtfulMove))
-						{
-							int pointChange = myNetMove.pointIncrease;
-							if(pointChange < minPointChange)
-							{
-								minPointChange = pointChange;
-								moveToMake = m;
-							}
 						}
 					}
 				}
@@ -506,20 +548,6 @@ public class g5player extends Player{
 	/*Takes a player location and returns a list of the slots that pushing coins from could increase that person's score. 
 	 *So this would be all of the slots of that persons' color minus the 4 pt one, plus all slots ONE away from a slot of their color. 
 	 */  
-	public ArrayList<Slot> getPotentiallyHelpfulSlots(Direction playerLocation)
-	{
-		if(playerLocation.name().equals("NW"))
-			return slotListNorthWest;
-		else if(playerLocation.name().equals("NE"))
-			return slotListNorthEast;
-		else if(playerLocation.name().equals("E"))
-			return slotListEast;
-		else if(playerLocation.name().equals("SE"))
-			return slotListSouthEast;
-		else if(playerLocation.name().equals("SW"))
-			return slotListSouthWest;
-		return slotListWest; //W
-	}
 	
 	public ArrayList<Slot> getAllSlots()
 	{
@@ -613,5 +641,58 @@ public class g5player extends Player{
 		return Math.max(0, closestNeighborDistance - distance); // returns e - d
 	}
 	
+	public ArrayList<Slot> getPerimeterSlots(int playerIndex)
+	{
+		ArrayList<Slot> mySlotList = new ArrayList<Slot>();
+		if(playerIndex == 0)
+		{
+			mySlotList.add(new Slot(3,1));
+			mySlotList.add(new Slot(4,2));
+			mySlotList.add(new Slot(7,3));
+			mySlotList.add(new Slot(7,1));
+			mySlotList.add(new Slot(6,0));
+		}
+		else if(playerIndex == 1)
+		{
+			mySlotList.add(new Slot(10,0));
+			mySlotList.add(new Slot(9,1));
+			mySlotList.add(new Slot(9,3));
+			mySlotList.add(new Slot(12,2));
+			mySlotList.add(new Slot(13,1));
+		}
+		else if(playerIndex == 2)
+		{
+			mySlotList.add(new Slot(15,3));
+			mySlotList.add(new Slot(13,3));
+			mySlotList.add(new Slot(10,4));
+			mySlotList.add(new Slot(13,5));
+			mySlotList.add(new Slot(15,5));
+		}
+		else if(playerIndex == 3)
+		{
+			mySlotList.add(new Slot(13,7));
+			mySlotList.add(new Slot(12,6));
+			mySlotList.add(new Slot(9,5));
+			mySlotList.add(new Slot(9,7));
+			mySlotList.add(new Slot(10,8));
+		}
+		else if(playerIndex == 4)
+		{
+			mySlotList.add(new Slot(6,8));
+			mySlotList.add(new Slot(7,7));
+			mySlotList.add(new Slot(7,5));
+			mySlotList.add(new Slot(4,6));
+			mySlotList.add(new Slot(3,7));
+		}
+		else if(playerIndex == 5)
+		{
+			mySlotList.add(new Slot(1,5));
+			mySlotList.add(new Slot(3,5));
+			mySlotList.add(new Slot(6,4));
+			mySlotList.add(new Slot(3,3));
+			mySlotList.add(new Slot(1,3));
+		}
+		return mySlotList;
+	}
 	
 }
