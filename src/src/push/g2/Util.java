@@ -2,6 +2,7 @@ package push.g2;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import org.apache.log4j.Logger;
 
@@ -412,8 +413,32 @@ public class Util {
 		return best;
 	}
 	
-	public static Move hurt2ndBest(int[][] board, ArrayList<Opponent> list, Direction home)
+	public static Move hurt2ndBest(int[][] board, ArrayList<Opponent> _list, Direction home)
 	{
+		ArrayList<Opponent> list = new ArrayList<Opponent>();
+		for(Opponent o: _list)
+		{
+			list.add(o);
+		}
+		
+		Collections.sort(list, new Opponent(0, home, home, 0));
+		
+		Opponent temp = list.get(0);
+		list.set(0, list.get(1));
+		list.set(1, temp);
+		Move m;
+		for(Opponent o : list)
+		{
+			m = getBestMove(board, o, home, false, -1);
+			if(affectsPlayerScore(o.oppCorner, m, board) <= 0)
+			{
+				return m;
+			}
+		}
+		
+		return null;
+		
+		/*
 		Opponent best = null;
 		double bestscore = 0;
 		Opponent second = null;
@@ -450,10 +475,11 @@ public class Util {
 		
 		if(secondscore == 0 || (board[(int) second.oppCorner.getHome().getY()][(int) second.oppCorner.getHome().getY()]*4 != secondscore && second.oppCorner.getOpposite() == home))
 		{
-			return getBestMove(board, best, home, true, -1);
+			return getBestMove(board, best, home, false, -1);
 		}
 		
-		return getBestMove(board, second, home, true, -1);
+		return getBestMove(board, second, home, false, -1);
+		*/
 	}
 	
 	public static int numStacks(int[][] board)

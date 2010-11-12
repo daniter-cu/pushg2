@@ -122,9 +122,17 @@ public class Util_endGame {
 		}
 		
 		// Player with max wealth (not neighbor) = d_temp (his direction)
-		
-		
 	}
+	
+	
+	
+	
+	
+	/**
+	 * Dan Iter todo:
+	 * Last move function
+	 * find good ally
+	 */
 	
 	
 }
