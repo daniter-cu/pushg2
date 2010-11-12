@@ -206,31 +206,31 @@ public class G2Player extends Player{
 				}
 				
 				//if there's an ally that can help us a lot, help them immediately
-				Opponent bestAlly = Util.getBestAlly(board, myCorner, opponents); 
-				if(bestAlly != null)
-				{
-					return Util.getBestMove(board, bestAlly, myCorner, true, 1);
-				}
-				
-				//if coins are too far away to ever get to us, sabotage forever!
-				if(Util.closestStack(board, myCorner) > numRounds-curRound &&
-						Util.closestStack(board, myCorner)>3 )
-				{
-					log.error("stacks are too far, sabotage opponents");
-					return Util.hurt2ndBest(board, opponents, myCorner);
-				}
-				
-				//if we can increase our score, do it
-				Move nextMove = Util.increaseOurScore(board, myCorner);
-				if(nextMove != null)
-					return nextMove;
-
-				//if we have to decrease our score, do it
-				if((nextMove = Util.hurtSelfLeast(board, myCorner)) != null)
-					return nextMove;
-				
-				//we have no moves, so just return anything
-				return new Move(4,8, myCorner.getOpposite());
+//				Opponent bestAlly = Util.getBestAlly(board, myCorner, opponents); 
+//				if(bestAlly != null)
+//				{
+//					return Util.getBestMove(board, bestAlly, myCorner, true, 1);
+//				}
+//				
+//				//if coins are too far away to ever get to us, sabotage forever!
+//				if(Util.closestStack(board, myCorner) > numRounds-curRound &&
+//						Util.closestStack(board, myCorner)>3 )
+//				{
+//					log.error("stacks are too far, sabotage opponents");
+//					return Util.hurt2ndBest(board, opponents, myCorner);
+//				}
+//				
+//				//if we can increase our score, do it
+//				Move nextMove = Util.increaseOurScore(board, myCorner);
+//				if(nextMove != null)
+//					return nextMove;
+//
+//				//if we have to decrease our score, do it
+//				if((nextMove = Util.hurtSelfLeast(board, myCorner)) != null)
+//					return nextMove;
+//				
+//				//we have no moves, so just return anything
+//				return new Move(4,8, myCorner.getOpposite());
 			}
 			
 			/**
