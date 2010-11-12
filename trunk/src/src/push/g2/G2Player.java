@@ -26,7 +26,7 @@ public class G2Player extends Player{
 	public static int END_GAME_START = 8;
 	
 	//magic tweakable numbers
-	public static double SWAP_TOP_TWO = 0.0;
+	public static double SWAP_TOP_TWO = 0.5;
 	public static double RANDOM_HURT = 0.0;
 	
 	ArrayList<Opponent> opponents;
@@ -87,17 +87,24 @@ public class G2Player extends Player{
 		}
 		
 		//change parameters based on the length of the game
-		if(numRounds > 55)
-		{
-			SWAP_TOP_TWO = 0.333;
-			RANDOM_HURT = 5.0;
-		}
-		
 		if(numRounds < 30)
 		{
 			SWAP_TOP_TWO = 0.5;
+			RANDOM_HURT = 5.0;
+		}
+		
+		if(numRounds > 30 && numRounds < 55)
+		{
+			SWAP_TOP_TWO = 0.125;
 			RANDOM_HURT = 0.0;
 		}
+		
+		if(numRounds > 55)
+		{
+			SWAP_TOP_TWO = 0.0;
+			RANDOM_HURT = 0.0;
+		}
+		
 	}
 
 	public Move makeMove(List<MoveResult> previousMoves)

@@ -105,7 +105,7 @@ public class Util {
 						else if(affectsPlayerScore(home, m, board) >= 0)
 						{
 							
-							log.error("returned " +m+": " + worthOfAMove(board, op.oppCorner, m) + ", " + hurt);
+							log.debug("returned " +m+": " + worthOfAMove(board, op.oppCorner, m) + ", " + hurt);
 							moves.add(new Moves(m,hurt*worthOfAMove(board,op.oppCorner,m)));
 						}
 						//log.debug("VALID: " + m.getX() + "," + m.getY() + ": " + m.getDirection());
@@ -115,7 +115,7 @@ public class Util {
 					{
 
 						log.debug("INVALID: " + m);
-						//log.error("INVALID: " + m);
+						//log.debug("INVALID: " + m);
 						//log.debug("INVALID: " + m.getX() + "," + m.getY() + ": " + m.getDirection());
 					}
 				}	
@@ -124,7 +124,7 @@ public class Util {
 		
 		//sort list
 		//log.debug("Play to go after = " + op.oppId);
-		//log.error("Possible moves : " + moves.size());
+		//log.debug("Possible moves : " + moves.size());
 		return getBest(moves, op.totalWorthValue);
 	}
 	
@@ -186,7 +186,7 @@ public class Util {
 		}
 		if(best != null)
 		{
-			log.error("Move: " +best.getM()+ " value: " + best.getVal());
+			log.debug("Move: " +best.getM()+ " value: " + best.getVal());
 			return best.getM();
 		}
 		return null;
@@ -195,12 +195,12 @@ public class Util {
 	//calculates the worth of any move made in the previous round for G2Player
 	public static double worthOfAMove(int[][]board, Direction opCorner, Move m)
     {
-		//log.error("Testing Move : " + m);
+		//log.debug("Testing Move : " + m);
 		double score = affectsPlayerScore(opCorner,m,board);
-		log.error("Worth of move: " + score);
+		log.debug("Worth of move: " + score);
 		if(score != 0)
 		{
-			log.error(m + " : " + score);
+			log.debug(m + " : " + score);
 			return score;
 		}
 		//double points = affectsPlayerScore(g2Corner, m, board); 
@@ -429,10 +429,10 @@ public class Util {
 		
 		Collections.sort(list, new Opponent(0, home, home, 0));
 		Collections.reverse(list);
-		for(Opponent o : list)
-		{
-			log.error(o.oppId);
-		}
+//		for(Opponent o : list)
+//		{
+//			log.debug(o.oppId);
+//		}
 		
 //		Opponent temp = list.get(0);
 //		list.set(0, list.get(1));
