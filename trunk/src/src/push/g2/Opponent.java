@@ -1,6 +1,7 @@
 package push.g2;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.awt.Point;
 
@@ -11,7 +12,7 @@ import push.sim.MoveResult;
 import push.sim.Player;
 import push.sim.Player.Direction;
 
-public class Opponent implements Comparable<Opponent>
+public class Opponent implements Comparable<Opponent>, Comparator<Opponent>
 {
 	public int HISTORY_MEMORY = 7;
 	public int HISTORY_MEM_MIN = 4;
@@ -274,6 +275,15 @@ public class Opponent implements Comparable<Opponent>
 		if(this.ranking > opp2.ranking)
 			return 1;
 		if(ranking >this.ranking)
+			return -1;
+		return 0;
+	}
+
+	@Override
+	public int compare(Opponent o1, Opponent o2) {
+		if(o1.score > o2.score)
+			return 1;
+		if(o2.score > o1.score)
 			return -1;
 		return 0;
 	}
